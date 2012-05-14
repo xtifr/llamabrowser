@@ -1,0 +1,10 @@
+# git ls-files --others --exclude-from=.git/info/exclude
+# [ignore]
+# A python project shouldn't have .o or .a, but will have .pyc
+# *.[oa]
+*.pyc
+# backup files should be ignored as usual
+*~
+*.bak
+# ignore any generated databases
+*.db
