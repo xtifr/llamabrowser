@@ -1,6 +1,13 @@
 #!/usr/bin/env python
+"""Connect to and download records from the Live Music Archive.
+
+The Query class is used to construct queries, and will iterate through
+the results.
+
+The ProgressIter class allows hooking a UI callback into a Query."""
 
 import urllib2
+from . import lmacallback
 
 # main fields we'll want to use
 # (if you add/remove any, don't forget to fix import list in __init__.py)
@@ -89,6 +96,14 @@ class Result (object):
         """Required for proper iterator-like behavior."""
         return self
 
+    def current(self):
+        """Return current record (useful for UI callback functions)."""
+        return self._current;
+
+    def total(self):
+        """Return total records (useful for UI callback functions)."""
+        return self._results
+
 class Query (object):
     """Defines an Archive query.
 
@@ -143,6 +158,30 @@ class Query (object):
         if len(field) == 0:
             field = [IDENTIFIER]
         return Result(self._query, field, self._sort, self._rows)
+
+class ProgressIter(object):
+    """Wrap an LMA query with a progress callback object."""
+    def __init__(self, query, callback):
+        self._iter = iter(query)
+        self._callback = callback
+        self._count = 0
+        callback.start()
+
+    def next(self):
+        """Iterate on the wrapped iterator."""
+        try:
+            value = self._iter.next()
+        except:
+            self._callback.end()
+            raise
+
+        if (self._count % self._callback.frequency) == 0:
+            self._callback.update(self._iter.current(), self._iter.total())
+        self._count = self._count + 1
+        return value
+
+    def __iter__(self):
+        return self
 
 if __name__ == '__main__':
     # grab two quick pages to see
