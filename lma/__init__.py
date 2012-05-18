@@ -5,3 +5,5 @@ from lma.query import (Query, ProgressIter, IDENTIFIER, TITLE,
                        BAND_QUERY, BAND_FIELDS, CONCERT_FIELDS)
 
 from lma.lmacallback import (BaseProgressCallback, nil_callback)
+
+from lma.db import (Db)
