@@ -6,8 +6,9 @@ the results.
 
 The ProgressIter class allows hooking a UI callback into a Query."""
 
+import time
 import urllib2
-from . import lmacallback
+from . import progress
 
 # main fields we'll want to use
 # (if you add/remove any, don't forget to fix import list in __init__.py)
@@ -32,19 +33,27 @@ class Result (object):
     Encapsulates the state of the query at the time it's created,
     and can then be used to iterate through the results."""
 
-    def __init__(self, query, field, sort, rows):
+    def __init__(self, query, field, sort, rows, date):
         self._query = query
         self._field = list(field)
         self._sort = list(sort)
         self._rows = rows
+        self._date = date
         self._page = 0
         self._results = 0
         self._current = 0
         self._data = []
 
+    def calc_query(self):
+        """Calculate the full query including date restriction."""
+        if self._date == None:
+            return self._query
+        today = time.strftime("%Y-%m-%d", time.gmtime())
+        return "%s AND publicdate:[%s TO %s]" % (self._query, self._date, today)
+
     def make_json_url(self):
         """Make the URL to use to get a page of json data.  (Internal)"""
-        body = (["q=" + urllib2.quote(self._query),
+        body = (["q=" + urllib2.quote(self.calc_query()),
                  "rows=" + str(self._rows),
                  "page=" + str(self._page),
                  "output=json"] +
@@ -123,6 +132,7 @@ class Query (object):
         self._field=[]
         self._sort = []
         self._rows = 50
+        self._date = None
 
     def set_query(self, query):
         """Set main search string."""
@@ -151,13 +161,17 @@ class Query (object):
             raise ValueError
         self._rows = a
 
+    def newer_than(self, date):
+        """Define a limiting date for the query."""
+        self._date = date
+
     def __iter__(self):
         """Return iterator encapsulating current parameters."""
         field = self._field
         # set default value for returned field if none given
         if len(field) == 0:
             field = [IDENTIFIER]
-        return Result(self._query, field, self._sort, self._rows)
+        return Result(self._query, field, self._sort, self._rows, self._date)
 
 class ProgressIter(object):
     """Wrap an LMA query with a progress callback object."""

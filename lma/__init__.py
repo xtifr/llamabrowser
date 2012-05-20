@@ -4,6 +4,8 @@ from lma.query import (Query, ProgressIter, IDENTIFIER, TITLE,
                        COLLECTION, MEDIATYPE, DATE, YEAR, FORMAT,
                        BAND_QUERY, BAND_FIELDS, CONCERT_FIELDS)
 
-from lma.lmacallback import (BaseProgressCallback, nil_callback)
+from lma.progress import (BaseProgressCallback, nil_callback)
 
-from lma.db import (Db)
+from lma.database import (Db)
+
+from lma.artist import (download_artists)
