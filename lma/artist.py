@@ -9,7 +9,7 @@ from . import progress
 # Artist database access
 #
 
-def download_artists(callback=progress.nil_callback):
+def download_artists(bar = progress.NullProgressBar):
     """Download artist records from LMA."""
     db = database.Db()
 
@@ -23,12 +23,16 @@ def download_artists(callback=progress.nil_callback):
     aquery.add_fields(query.BAND_FIELDS)
     aquery.newer_than(lastdate)
 
+    # create the progress bar callback
+    callback = progress.ProgressCallback("Live Music Archive Download",
+                                         "Retrieve Artists from LMA", bar)
+
     # push the records into our database, with callback
-    db.executemany("INSERT OR IGNORE INTO artist (aname, lmaid)"
+    c.executemany("INSERT OR IGNORE INTO artist (aname, lmaid)"
                    "   VALUES (:title, :identifier)",
                    query.ProgressIter(aquery, callback))
 
     # now update the last-updated field
-    db.execute("UPDATE lma_config SET last_artist_read = date('now')"
+    c.execute("UPDATE lma_config SET last_artist_read = date('now')"
                "WHERE recnum = 1")
     db.commit()
