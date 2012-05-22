@@ -1,0 +1,7 @@
+#!/usr/bin/env python
+
+# TODO version check here for 2.7
+
+import lma
+import wxui
+wxui.main()

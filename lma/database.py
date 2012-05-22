@@ -60,6 +60,7 @@ COMMIT;
 -- drop in reverse order of creation to avoid foreign-key problems
 DROP TABLE IF EXISTS song;
 DROP TABLE IF EXISTS concert;
+DROP TABLE IF EXISTS lastbrowse;
 DROP TABLE IF EXISTS favorite;
 --DROP TRIGGER IF EXISTS newartist;
 DROP INDEX IF EXISTS artistidx;
@@ -78,8 +79,12 @@ CREATE INDEX artistidx ON artist(aname);
 --        END;
 
 CREATE TABLE favorite (
-    artistid INTEGER REFERENCES artist(aid),
-    lastbrowse DATE
+    artistid INTEGER REFERENCES artist(aid)
+);
+
+CREATE TABLE lastbrowse (
+    aid INTEGER REFERENCES artist(aid),
+    browsedate DATE
 );
 
 -- main concert table
