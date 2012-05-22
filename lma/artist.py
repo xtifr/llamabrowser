@@ -57,6 +57,7 @@ class ArtistList(object):
     LEFT JOIN favorite AS f ON f.artistid = a.aid
     ORDER BY a.aname""")
         self._data = c.fetchall()
+        c.close()
 
     def repopulate(self):
         """Update the DB from the internet, then refresh."""
