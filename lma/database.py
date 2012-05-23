@@ -93,8 +93,7 @@ CREATE TABLE concert (
     ctitle TEXT NOT NULL,          --displayable name
     lmaid TEXT UNIQUE NOT NULL,
     cyear TEXT NOT NULL,
-    lossless_format TEXT,         -- 'flac' or 'shn'
-    has_lossy BOOL,
+    cdate DATE,
     artistid INTEGER REFERENCES artist(aid)
 );
 
@@ -105,4 +104,3 @@ CREATE TABLE song (
     base_fname TEXT NOT NULL,  -- base filename (without extension)
     concertid INTEGER REFERENCES concert(cid)
 );""")
-

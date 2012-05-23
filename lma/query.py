@@ -21,9 +21,10 @@ DATE="date"
 YEAR="year"
 FORMAT="format"
 
-BAND_QUERY="%s:%s AND %s:%s" % (MEDIATYPE, COLLECTION, COLLECTION, "etree")
-BAND_FIELDS=[IDENTIFIER, TITLE]
-CONCERT_FIELDS=[IDENTIFIER, TITLE]
+BAND_QUERY="collection:etree AND mediatype:collection"
+def CONCERT_QUERY(id):
+    return "collection:%s AND mediatype:etree" % str(id)
+STANDARD_FIELDS=[IDENTIFIER, TITLE]
 
 # An sample version of the type of URL we'll be using to query the LMA is:
 # http://archive.org/advancedsearch.php?q=mediatype%3Acollection%20AND%20collection%3Aetree&fl[]=identifier&sort[]=&sort[]=&sort[]=&rows=50&page=1&output=json

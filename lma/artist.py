@@ -20,7 +20,7 @@ def download_artists(bar = progress.NullProgressBar):
 
     # form the archive query (including lastdate)
     aquery = query.Query(query.BAND_QUERY)
-    aquery.add_fields(query.BAND_FIELDS)
+    aquery.add_fields(query.STANDARD_FIELDS)
     aquery.add_sort(query.PUBDATE)
     aquery.newer_than(lastdate)
 
@@ -52,7 +52,8 @@ class ArtistList(object):
         """Reload the data from the DB."""
         db = database.Db()
         c = db.cursor()
-        c.execute("""SELECT a.aname, b.browsedate, f.artistid from artist AS a
+        c.execute("""SELECT a.aname, b.browsedate, f.artistid, a.aid
+    FROM artist AS a
     LEFT JOIN lastbrowse AS b ON b.aid = a.aid
     LEFT JOIN favorite AS f ON f.artistid = a.aid
     ORDER BY a.aname""")
@@ -76,3 +77,7 @@ class ArtistList(object):
     def getCount(self):
         """Return the current number of rows."""
         return len(self._data)
+
+    def getArtistID(self, row):
+        """Get specified row's main key."""
+        return self._data[3]
