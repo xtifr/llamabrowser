@@ -46,17 +46,28 @@ class ArtistList(object):
     """Generic representation of artist list."""
     def __init__(self, bar = progress.NullProgressBar):
         self._bar = bar
+        self._mode = 0          # 0=all, 1=favorites, 2=browsed
         self.refresh()
 
     def refresh(self):
         """Reload the data from the DB."""
+        # by default, use left joins with both favorite and lastbrowse.
+        # use an inner join instead to limit records to just that type.
+        fav_join = "LEFT"
+        browse_join = "LEFT"
+        if self._mode == 1:     # favorites only
+            fav_join = "INNER"
+        elif self._mode == 2:   # browsed only
+            browse_join = "INNER"
+
+        # now call selec using the appropriate join
         db = database.Db()
         c = db.cursor()
-        c.execute("""SELECT a.aname, b.browsedate, f.artistid, a.aid
-    FROM artist AS a
-    LEFT JOIN lastbrowse AS b ON b.aid = a.aid
-    LEFT JOIN favorite AS f ON f.artistid = a.aid
-    ORDER BY a.aname""")
+        c.execute("SELECT a.aname, b.browsedate, f.artistid, a.aid "
+                  "  FROM artist AS a "
+                  "  %s JOIN favorite AS f ON f.artistid = a.aid "
+                  "  %s JOIN lastbrowse AS b ON b.aid = a.aid "
+                  "  ORDER BY a.aname" % (fav_join, browse_join))
         self._data = c.fetchall()
         c.close()
 
