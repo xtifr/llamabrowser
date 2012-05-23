@@ -27,8 +27,8 @@ class WxProgressBar(object):
 class WxArtistListCtrl(wx.ListCtrl):
     """List box for artists."""
     def __init__(self, parent, id=-1, 
-                 style = wx.LC_REPORT | wx.LC_VIRTUAL
-                        |wx.LC_HRULES | wx.LC_VRULES):
+                 style = (wx.LC_REPORT | wx.LC_VIRTUAL | wx.LC_SINGLE_SEL
+                          | wx.LC_HRULES | wx.LC_VRULES)):
         super(WxArtistListCtrl, self).__init__(parent, id, style=style)
         self._list = lma.ArtistList(WxProgressBar)
 
