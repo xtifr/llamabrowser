@@ -92,3 +92,8 @@ class ArtistList(object):
     def getArtistID(self, row):
         """Get specified row's main key."""
         return self._data[3]
+
+    def setMode(self, mode):
+        if mode != self._mode:
+            self._mode = mode
+            self.refresh()
