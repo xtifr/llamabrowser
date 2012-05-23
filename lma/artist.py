@@ -11,9 +11,11 @@ from . import progress
 
 def download_artists(bar = progress.NullProgressBar):
     """Download artist records from LMA."""
-    db = database.Db()
+    # reset the new list, in preparation for repopulating it
+    clear_new_artists()
 
     # get the last update date
+    db = database.Db()
     c = db.cursor()
     c.execute("SELECT last_artist_read from lma_config where recnum = 1");
     lastdate = c.fetchone()[0]
@@ -30,7 +32,7 @@ def download_artists(bar = progress.NullProgressBar):
 
     # push the records into our database, with callback
     c.executemany("INSERT OR IGNORE INTO artist (aname, lmaid)"
-                   "   VALUES (:title, :identifier)",
+                  "  VALUES (:title, :identifier)",
                    query.ProgressIter(aquery, callback))
 
     # now update the last-updated field
@@ -38,6 +40,15 @@ def download_artists(bar = progress.NullProgressBar):
                "WHERE recnum = 1")
     db.commit()
     c.close()
+
+#
+# reset the new artist list
+#
+def clear_new_artists():
+    """Clear the new artist list."""
+    db = database.Db()
+    db.execute("DELETE FROM newartist")
+    db.commit()
 
 #
 # Prepare a list of artists
@@ -55,19 +66,23 @@ class ArtistList(object):
         # use an inner join instead to limit records to just that type.
         fav_join = "LEFT"
         browse_join = "LEFT"
+        new_join = "LEFT"
         if self._mode == 1:     # favorites only
             fav_join = "INNER"
         elif self._mode == 2:   # browsed only
             browse_join = "INNER"
+        elif self._mode == 3:   # new only
+            new_join = "INNER"
 
         # now call selec using the appropriate join
         db = database.Db()
         c = db.cursor()
-        c.execute("SELECT a.aname, b.browsedate, f.artistid, a.aid "
+        c.execute("SELECT a.aname, b.browsedate, f.artistid, a.aid, n.aid "
                   "  FROM artist AS a "
                   "  %s JOIN favorite AS f ON f.artistid = a.aid "
                   "  %s JOIN lastbrowse AS b ON b.aid = a.aid "
-                  "  ORDER BY a.aname" % (fav_join, browse_join))
+                  "  %s JOIN newartist AS n ON n.aid = a.aid "
+                  "  ORDER BY a.aname" % (fav_join, browse_join, new_join))
         self._data = c.fetchall()
         c.close()
 

@@ -49,7 +49,9 @@ class WxArtistListCtrl(wx.ListCtrl):
     def setMode(self, mode):
         self._list.setMode(mode)
         self.reset()
-
+    def download(self):
+        self._list.repopulate()
+        self.reset()
 #
 # Set up main frame
 #
@@ -58,7 +60,7 @@ class WxLMAFrame(wx.Frame):
                  size=(600, 400), style=wx.DEFAULT_FRAME_STYLE):
         super(WxLMAFrame, self).__init__(parent, ID, title, pos, size, style)
 
-        self._choices = ["All", "Favorites", "Browsed"]
+        self._choices = ["All", "Favorites", "Browsed", "New"]
 
         panel = wx.Panel(self, -1)
         outersizer = wx.BoxSizer(wx.VERTICAL)
@@ -92,7 +94,8 @@ class WxLMAFrame(wx.Frame):
 
         # file menu
         fileMenu = wx.Menu()
-        fileMenu.Append(101, "&Quit", "Exit Program")
+        fileMenu.Append(101, "&Fetch Artists", "Fetch/Update Artist List")
+        fileMenu.Append(102, "&Quit", "Exit Program")
         menubar.Append(fileMenu, "&File")
 
         # help menu
@@ -103,7 +106,8 @@ class WxLMAFrame(wx.Frame):
         self.SetMenuBar(menubar)
 
         # bind menus
-        self.Bind(wx.EVT_MENU, self.menuQuit, id=101)
+        self.Bind(wx.EVT_MENU, self.menuFetch, id=101)
+        self.Bind(wx.EVT_MENU, self.menuQuit, id=102)
 
         self.Bind(wx.EVT_MENU, self.menuAbout, id=201)
 
@@ -118,8 +122,12 @@ class WxLMAFrame(wx.Frame):
         self._list.setMode(mode)
 
     ## menu methods
+                 
+    def menuFetch(self, event):
+        self._list.download()
     def menuQuit(self, event):
         self.Close()
+
     def menuAbout(self, event):
         """Create and display 'About' window."""
         from wx.lib.wordwrap import wordwrap

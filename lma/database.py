@@ -62,7 +62,8 @@ DROP TABLE IF EXISTS song;
 DROP TABLE IF EXISTS concert;
 DROP TABLE IF EXISTS lastbrowse;
 DROP TABLE IF EXISTS favorite;
---DROP TRIGGER IF EXISTS newartist;
+DROP TABLE IF EXISTS newartist;
+DROP TRIGGER IF EXISTS afterartist;
 DROP INDEX IF EXISTS artistidx;
 DROP TABLE IF EXISTS artist;
 
@@ -72,11 +73,6 @@ CREATE TABLE artist (
     aname TEXT NOT NULL,
     lmaid TEXT UNIQUE NOT NULL -- LMA identifier
 );
-CREATE INDEX artistidx ON artist(aname);
---CREATE TRIGGER newartist AFTER INSERT ON artist
---    FOR EACH ROW BEGIN 
---        UPDATE lma_config SET last_artist_read = date('now') WHERE recnum = 1;
---        END;
 
 CREATE TABLE favorite (
     artistid INTEGER REFERENCES artist(aid)
@@ -86,6 +82,15 @@ CREATE TABLE lastbrowse (
     aid INTEGER REFERENCES artist(aid),
     browsedate DATE
 );
+
+CREATE TABLE newartist (
+    aid INTEGER REFERENCES artist(aid)
+);
+
+CREATE TRIGGER afterartist AFTER INSERT ON artist
+  FOR EACH ROW BEGIN
+    INSERT INTO newartist (aid) VALUES (NEW.aid);
+  END;
 
 -- main concert table
 CREATE TABLE concert (

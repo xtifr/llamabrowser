@@ -8,6 +8,6 @@ from lma.progress import (ProgressCallback, NullProgressBar)
 
 from lma.database import (Db)
 
-from lma.artist import (download_artists, ArtistList)
+from lma.artist import (download_artists, clear_new_artists, ArtistList)
 
 from lma.concert import (download_concerts)
