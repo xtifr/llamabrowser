@@ -61,6 +61,49 @@ class WxLMAFrame(wx.Frame):
         self._panel.SetSizer(sizer)
         self._panel.SetAutoLayout(True)
 
+        self.CreateStatusBar()
+        self.SetStatusText("")
+
+        # create menus
+        menubar = wx.MenuBar()
+        # file menu
+        fileMenu = wx.Menu()
+        fileMenu.Append(101, "&Quit", "Exit Program")
+        menubar.Append(fileMenu, "&File")
+
+        # help menu
+        helpMenu = wx.Menu()
+        helpMenu.Append(201, "&About", "About LMABrowser")
+        menubar.Append(helpMenu, "&Help")
+
+        self.SetMenuBar(menubar)
+
+        # bind menus
+        self.Bind(wx.EVT_MENU, self.menuQuit, id=101)
+
+        self.Bind(wx.EVT_MENU, self.menuAbout, id=201)
+
+    def menuQuit(self, event):
+        self.Close()
+    def menuAbout(self, event):
+        """Create and display 'About' window."""
+        from wx.lib.wordwrap import wordwrap
+        info = wx.AboutDialogInfo()
+        info.Name = "LMA Browser"
+        info.Version = lma.__version__
+        info.Copyright = ("(c) 2012 Chris Waters")
+        info.Description = wordwrap(
+            "Browse and download concert recordings from the "
+            "Internet Archive's Live Music Archive (LMA). "
+            "The LMA features live concert recordings from "
+            "thousands of taper-friendly bands, free for personal use.\n\n"
+
+            "Recordings are available in lossless format (FLAC or SHN), and "
+            "in many cases, as lossy MP3 or Ogg Vorbis as well.",
+            350, wx.ClientDC(self))
+        info.Developers = ["Chris Waters"]
+        wx.AboutBox(info)
+
 #
 # main app
 #
