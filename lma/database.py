@@ -102,6 +102,15 @@ CREATE TABLE concert (
     artistid INTEGER REFERENCES artist(aid)
 );
 
+CREATE TABLE newconcert (
+   cid INTEGER REFERENCES concert(cid)
+);
+
+CREATE TRIGGER afterconcert AFTER INSERT ON concert
+  FOR EACH ROW BEGIN
+    INSERT INTO newconcert (cid) VALUES (NEW.cid);
+  END;
+
 -- song table
 CREATE TABLE song (
     sid INTEGER PRIMARY KEY,
