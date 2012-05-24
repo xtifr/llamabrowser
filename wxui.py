@@ -32,7 +32,7 @@ class WxArtistListCtrl(wx.ListCtrl):
         super(WxArtistListCtrl, self).__init__(parent, id, style=style)
         self._list = lma.ArtistList(WxProgressBar)
 
-        self.InsertColumn(0, "Name")
+        self.InsertColumn(0, "Artist Name")
         self.InsertColumn(1, "Last Browsed")
         self.InsertColumn(2, "Favorite")
 
@@ -40,6 +40,44 @@ class WxArtistListCtrl(wx.ListCtrl):
         self.SetColumnWidth(1, 100)
         self.SetColumnWidth(2, 75)
 
+        self.reset()
+
+    @property
+    def list(self):
+        """Access to the underlying artist list object."""
+        return self._list
+    def reset(self):
+        self.SetItemCount(self.list.getCount())
+    def setMode(self, mode):
+        self.list.mode = mode
+        self.reset()
+    def download(self):
+        self.list.repopulate()
+        self.reset()
+
+    # override widget methods
+    def OnGetItemText(self, item, column):
+        return self.list.getResult(item, column)
+
+#
+# concert listings
+#
+class WxConcertListCtrl(wx.ListCtrl):
+    """List box for concerts."""
+    def __init__(self, artist, parent, id=-1,
+                 style = (wx.LC_REPORT | wx.LC_VIRTUAL | wx.LC_SINGLE_SEL
+                          | wx.LC_HRULES | wx.LC_VRULES)):
+        super(WxConcertListCtrl, self).__init__(parent, id, style=style)
+        self._artist = artist
+        self._list = lma.ConcertList(artist, WxProgressBar)
+
+        self.InsertColumn(0, "Concert Venue")
+        self.InsertColumn(1, "Date")
+        self.InsertColumn(2, "Favorite")
+
+        self.SetColumnWidth(0, 350)
+        self.SetColumnWidth(1, 100)
+        self.SetColumnWidth(2, 75)
         self.reset()
 
     @property

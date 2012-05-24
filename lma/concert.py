@@ -111,12 +111,12 @@ class ConcertList(object):
         # now call select using the appropriate join
         db = database.Db()
         c = db.cursor()
-        c.execute("SELECT c.cid, c.ctitle, c.date, f.concertid, c.year, n.cid "
+        c.execute("SELECT c.cid,c.ctitle,c.cdate,f.concertid,c.cyear,n.cid "
                   "  FROM concert AS c "
                   "  %s JOIN favconcert AS f ON f.concertid = c.cid "
                   "  %s JOIN newconcert AS n ON n.cid = c.cid "
                   "  WHERE c.artistid = '%s' "
-                  "  ORDER BY c.date" % (fav_join, new_join, self._artist))
+                  "  ORDER BY c.cdate" % (fav_join, new_join, self._artist))
         self._data = c.fetchall()
         c.close()
 
