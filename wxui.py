@@ -126,7 +126,7 @@ class WxLMAFrame(wx.Frame):
     def menuFetchArtists(self, event):
         self._alist.download()
     def menuClearNewArtists(self, event):
-        self._alist.clearNew()
+        self._alist.list.clearNew()
     def menuQuit(self, event):
         self.Close()
 
