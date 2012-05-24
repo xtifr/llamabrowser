@@ -27,8 +27,12 @@ class ProgressCallback(object):
 
     def update(self, current, total):
         """Called every 'frequency' records."""
-        assert current < total
-        percent = (current * 100.0) / total
+        if total == 0:
+            # technically we're 100% done
+            percent = 100
+        else:
+            assert current <= total
+            percent = (current * 100.0) / total
         self._dialog.update(percent)
 
     def end(self):
