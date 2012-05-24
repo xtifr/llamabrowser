@@ -78,6 +78,7 @@ CREATE TABLE favorite (
     artistid INTEGER REFERENCES artist(aid)
 );
 
+-- last time concert list downloaded for given artist
 CREATE TABLE lastbrowse (
     aid INTEGER REFERENCES artist(aid),
     browsedate DATE
@@ -86,7 +87,6 @@ CREATE TABLE lastbrowse (
 CREATE TABLE newartist (
     aid INTEGER REFERENCES artist(aid)
 );
-
 CREATE TRIGGER afterartist AFTER INSERT ON artist
   FOR EACH ROW BEGIN
     INSERT INTO newartist (aid) VALUES (NEW.aid);
@@ -102,10 +102,13 @@ CREATE TABLE concert (
     artistid INTEGER REFERENCES artist(aid)
 );
 
-CREATE TABLE newconcert (
-   cid INTEGER REFERENCES concert(cid)
+CREATE TABLE favconcert (
+    concertid INTEGER REFERENCES concert(cid)
 );
 
+CREATE TABLE newconcert (
+     cid INTEGER REFERENCES concert(cid)
+);
 CREATE TRIGGER afterconcert AFTER INSERT ON concert
   FOR EACH ROW BEGIN
     INSERT INTO newconcert (cid) VALUES (NEW.cid);

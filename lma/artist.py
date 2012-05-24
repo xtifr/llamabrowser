@@ -13,7 +13,7 @@ def _(text):
 # Artist database access
 #
 
-def download_artists(bar = progress.NullProgressBar):
+def download_artists(progbar = progress.NullProgressBar):
     """Download artist records from LMA."""
     # get the last update date
     db = database.Db()
@@ -29,7 +29,7 @@ def download_artists(bar = progress.NullProgressBar):
 
     # create the progress bar callback
     callback = progress.ProgressCallback("Live Music Archive Download",
-                                         "Retrieve Artists from LMA", bar)
+                                         "Retrieve Artists from LMA", progbar)
 
     # push the records into our database, with callback
     c.executemany("INSERT OR IGNORE INTO artist (aname, lmaid)"
@@ -64,8 +64,8 @@ VIEW_SELECTORS = [VIEW_ALL, VIEW_FAVORITES, VIEW_BROWSED, VIEW_NEW]
 
 class ArtistList(object):
     """Generic representation of artist list."""
-    def __init__(self, progress = progress.NullProgressBar):
-        self._progress = progress
+    def __init__(self, progbar = progress.NullProgressBar):
+        self._progbar = progbar
         self._mode = VIEW_ALL
         self.refresh()
 
@@ -105,7 +105,7 @@ class ArtistList(object):
         # now call selec using the appropriate join
         db = database.Db()
         c = db.cursor()
-        c.execute("SELECT a.aname, b.browsedate, f.artistid, a.aid, n.aid "
+        c.execute("SELECT a.aid, a.aname, b.browsedate, f.artistid, n.aid "
                   "  FROM artist AS a "
                   "  %s JOIN favorite AS f ON f.artistid = a.aid "
                   "  %s JOIN lastbrowse AS b ON b.aid = a.aid "
@@ -116,7 +116,7 @@ class ArtistList(object):
 
     def repopulate(self):
         """Update the DB from the internet, then refresh."""
-        download_artists(self._progress)
+        download_artists(self._progbar)
         self.refresh()
 
     def clearNew(self):
@@ -127,7 +127,7 @@ class ArtistList(object):
     # methods used directly by the UI
     def getResult(self, row, col):
         """Return the value for a given row and column."""
-        value = self._data[row][col]
+        value = self._data[row][col+1]
         if value == None:
             return ""
         if col == 2:
@@ -140,4 +140,4 @@ class ArtistList(object):
 
     def getArtistID(self, row):
         """Get specified row's main key."""
-        return self._data[row][3]
+        return self._data[row][0]
