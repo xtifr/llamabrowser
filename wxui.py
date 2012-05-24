@@ -71,14 +71,14 @@ class WxLMAFrame(wx.Frame):
         innersizer = wx.BoxSizer(wx.HORIZONTAL)
 
         # add the inner sizer and the artist list to the outer sizer
-        self._listctl = WxArtistListCtrl(panel, -1)
+        self._alist = WxArtistListCtrl(panel, -1)
         outersizer.Add(innersizer, 0, wx.EXPAND)
-        outersizer.Add(self._listctl, 1, wx.EXPAND)
+        outersizer.Add(self._alist, 1, wx.EXPAND)
 
         # create search and select widgets
         search = wx.SearchCtrl(panel, -1)
         sel_label = wx.StaticText(panel, -1, "Select: ")
-        select = wx.Choice(panel, -1, choices=self._listctl.list.mode_list)
+        select = wx.Choice(panel, -1, choices=self._alist.list.mode_list)
         self.Bind(wx.EVT_CHOICE, self.setArtistMode)
 
         # add the select and search buttons to the inner sizer
@@ -98,8 +98,9 @@ class WxLMAFrame(wx.Frame):
 
         # file menu
         fileMenu = wx.Menu()
-        fileMenu.Append(101, "&Fetch Artists", "Fetch/Update Artist List")
-        fileMenu.Append(102, "&Quit", "Exit Program")
+        fileMenu.Append(101, "&Fetch Artists", "Fetch/update artist list")
+        fileMenu.Append(102, "&Clear New List", "Mark all artists seen.")
+        fileMenu.Append(199, "&Quit", "Exit program")
         menubar.Append(fileMenu, "&File")
 
         # help menu
@@ -110,19 +111,22 @@ class WxLMAFrame(wx.Frame):
         self.SetMenuBar(menubar)
 
         # bind menus
-        self.Bind(wx.EVT_MENU, self.menuFetch, id=101)
-        self.Bind(wx.EVT_MENU, self.menuQuit, id=102)
+        self.Bind(wx.EVT_MENU, self.menuFetchArtists, id=101)
+        self.Bind(wx.EVT_MENU, self.menuClearNewArtists, id=102)
+        self.Bind(wx.EVT_MENU, self.menuQuit, id=199)
 
         self.Bind(wx.EVT_MENU, self.menuAbout, id=201)
 
     def setArtistMode(self, event):
         """Event handler, sets display mode."""
-        self._listctl.setMode(event.GetString())
+        self._alist.setMode(event.GetString())
 
     ## menu methods
                  
-    def menuFetch(self, event):
-        self._listctl.download()
+    def menuFetchArtists(self, event):
+        self._alist.download()
+    def menuClearNewArtists(self, event):
+        self._alist.clearNew()
     def menuQuit(self, event):
         self.Close()
 

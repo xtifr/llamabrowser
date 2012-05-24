@@ -15,9 +15,6 @@ def _(text):
 
 def download_artists(bar = progress.NullProgressBar):
     """Download artist records from LMA."""
-    # reset the new list, in preparation for repopulating it
-    clear_new_artists()
-
     # get the last update date
     db = database.Db()
     c = db.cursor()
@@ -120,6 +117,11 @@ class ArtistList(object):
     def repopulate(self):
         """Update the DB from the internet, then refresh."""
         download_artists(self._progress)
+        self.refresh()
+
+    def clearNew(self):
+        """Clear the new list, then refresh."""
+        clear_new_artists()
         self.refresh()
 
     # methods used directly by the UI
