@@ -40,18 +40,24 @@ class WxArtistListCtrl(wx.ListCtrl):
         self.SetColumnWidth(1, 100)
         self.SetColumnWidth(2, 75)
 
-        self.SetItemCount(self._list.getCount())
+        self.reset()
 
-    def OnGetItemText(self, item, column):
-        return self._list.getResult(item, column)
+    @property
+    def list(self):
+        """Access to the underlying artist list object."""
+        return self._list
     def reset(self):
-        self.SetItemCount(self._list.getCount())
+        self.SetItemCount(self.list.getCount())
     def setMode(self, mode):
-        self._list.setMode(mode)
+        self.list.mode = mode
         self.reset()
     def download(self):
-        self._list.repopulate()
+        self.list.repopulate()
         self.reset()
+
+    # override widget methods
+    def OnGetItemText(self, item, column):
+        return self.list.getResult(item, column)
 #
 # Set up main frame
 #
@@ -60,28 +66,26 @@ class WxLMAFrame(wx.Frame):
                  size=(600, 400), style=wx.DEFAULT_FRAME_STYLE):
         super(WxLMAFrame, self).__init__(parent, ID, title, pos, size, style)
 
-        self._choices = ["All", "Favorites", "Browsed", "New"]
-
         panel = wx.Panel(self, -1)
         outersizer = wx.BoxSizer(wx.VERTICAL)
         innersizer = wx.BoxSizer(wx.HORIZONTAL)
 
+        # add the inner sizer and the artist list to the outer sizer
+        self._listctl = WxArtistListCtrl(panel, -1)
+        outersizer.Add(innersizer, 0, wx.EXPAND)
+        outersizer.Add(self._listctl, 1, wx.EXPAND)
+
         # create search and select widgets
         search = wx.SearchCtrl(panel, -1)
         sel_label = wx.StaticText(panel, -1, "Select: ")
-        select = wx.Choice(panel, -1, choices=self._choices)
-        self.Bind(wx.EVT_CHOICE, self.setArtistSelection)
+        select = wx.Choice(panel, -1, choices=self._listctl.list.mode_list)
+        self.Bind(wx.EVT_CHOICE, self.setArtistMode)
 
         # add the select and search buttons to the inner sizer
         innersizer.Add(search, 0, wx.ALIGN_CENTER)
         innersizer.AddStretchSpacer()
         innersizer.Add(sel_label, 0, wx.ALIGN_CENTER)
         innersizer.Add(select, 0, wx.ALIGN_CENTER)
-
-        # add the inner sizer and the artist list to the outer sizer
-        self._list = WxArtistListCtrl(panel, -1)
-        outersizer.Add(innersizer, 0, wx.EXPAND)
-        outersizer.Add(self._list, 1, wx.EXPAND)
 
         # attach outer size, add status bar
         panel.SetSizer(outersizer)
@@ -111,20 +115,14 @@ class WxLMAFrame(wx.Frame):
 
         self.Bind(wx.EVT_MENU, self.menuAbout, id=201)
 
-    def setArtistSelection(self, event):
-        """Event handler, sets all/favorites/browsed."""
-        picked = event.GetString()
-        mode = -1
-        for i in xrange(len(self._choices)):
-            if picked == self._choices[i]:
-                mode = i
-                break
-        self._list.setMode(mode)
+    def setArtistMode(self, event):
+        """Event handler, sets display mode."""
+        self._listctl.setMode(event.GetString())
 
     ## menu methods
                  
     def menuFetch(self, event):
-        self._list.download()
+        self._listctl.download()
     def menuQuit(self, event):
         self.Close()
 

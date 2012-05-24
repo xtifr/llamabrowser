@@ -5,6 +5,10 @@ from . import database
 from . import query
 from . import progress
 
+# temporary def used till we set up gettext
+def _(text):
+    return text
+
 #
 # Artist database access
 #
@@ -53,26 +57,53 @@ def clear_new_artists():
 #
 # Prepare a list of artists
 #
+
+# selectors for display mode, separated out for l10n
+VIEW_ALL = _(u"All Artists")
+VIEW_FAVORITES = _(u"Favorites")
+VIEW_BROWSED = _(u"With Concerts")
+VIEW_NEW = _(u"New Artists")
+VIEW_SELECTORS = [VIEW_ALL, VIEW_FAVORITES, VIEW_BROWSED, VIEW_NEW]
+
 class ArtistList(object):
     """Generic representation of artist list."""
-    def __init__(self, bar = progress.NullProgressBar):
-        self._bar = bar
-        self._mode = 0          # 0=all, 1=favorites, 2=browsed
+    def __init__(self, progress = progress.NullProgressBar):
+        self._progress = progress
+        self._mode = VIEW_ALL
         self.refresh()
 
+    # properties for mode selection
+    @property
+    def mode(self):
+        """The current selection/display mode -- a value from mode_list.
+
+        Setting this may trigger a refresh."""
+        return self._mode
+    @mode.setter
+    def mode(self, value):
+        assert(value in self.mode_list)
+        if self._mode != value:
+            self._mode = value
+            self.refresh()
+    @property
+    def mode_list(self):
+        """List of available selection/display modes.
+
+        This is a pseudo property, referring to a global list."""
+        return VIEW_SELECTORS
+
     def refresh(self):
-        """Reload the data from the DB."""
+        """Set up to access the DB according to the current mode."""
+
         # by default, use left joins with both favorite and lastbrowse.
-        # use an inner join instead to limit records to just that type.
-        fav_join = "LEFT"
-        browse_join = "LEFT"
-        new_join = "LEFT"
-        if self._mode == 1:     # favorites only
-            fav_join = "INNER"
-        elif self._mode == 2:   # browsed only
-            browse_join = "INNER"
-        elif self._mode == 3:   # new only
-            new_join = "INNER"
+        # use a regular join instead to limit records to just that type.
+        fav_join = browse_join = new_join = "LEFT"
+        if self.mode == VIEW_FAVORITES:
+            fav_join = ""
+        elif self.mode == VIEW_BROWSED:
+            browse_join = ""
+        elif self.mode == VIEW_NEW:
+            new_join = ""
 
         # now call selec using the appropriate join
         db = database.Db()
@@ -88,9 +119,10 @@ class ArtistList(object):
 
     def repopulate(self):
         """Update the DB from the internet, then refresh."""
-        download_artists(self._bar)
+        download_artists(self._progress)
         self.refresh()
 
+    # methods used directly by the UI
     def getResult(self, row, col):
         """Return the value for a given row and column."""
         value = self._data[row][col]
@@ -106,9 +138,4 @@ class ArtistList(object):
 
     def getArtistID(self, row):
         """Get specified row's main key."""
-        return self._data[3]
-
-    def setMode(self, mode):
-        if mode != self._mode:
-            self._mode = mode
-            self.refresh()
+        return self._data[row][3]
