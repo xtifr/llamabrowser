@@ -71,6 +71,7 @@ class ArtistListCtrl(wx.ListCtrl):
 class ArtistListPanel(wx.Panel):
     def __init__(self, parent, id=-1):
         super(ArtistListPanel, self).__init__(parent, id)
+        sizer = wx.BoxSizer(wx.VERTICAL)
 
         # create the list widget
         self._listctrl = ArtistListCtrl(self, ARTIST_LIST_ID)
@@ -144,6 +145,8 @@ class ConcertListCtrl(wx.ListCtrl):
     def setArtist(self, artist):
         self.clist = lma.ConcertList(artist, WxProgressBar)
         self.reset()
+    def getArtistName(self):
+        return self.clist.getArtistName()
 
     # override widget methods
     def OnGetItemText(self, item, column):
@@ -152,9 +155,18 @@ class ConcertListCtrl(wx.ListCtrl):
 class ConcertListPanel(wx.Panel):
     def __init__(self, parent, id=-1):
         super(ConcertListPanel, self).__init__(parent, id)
+        sizer = wx.BoxSizer(wx.VERTICAL)
 
         # create the list widget
         self._listctrl = ConcertListCtrl(self, CONCERT_LIST_ID)
+
+        # label field at top
+        self._label = wx.StaticText(self, -1, "")
+        tmpsizer = wx.BoxSizer(wx.HORIZONTAL)
+        tmpsizer.AddStretchSpacer()
+        tmpsizer.Add(self._label, 0)
+        tmpsizer.AddStretchSpacer()
+        sizer.Add(tmpsizer, 0, wx.ALIGN_CENTER)
 
         # create the top row of widgets
         search = wx.SearchCtrl(self, -1)
@@ -163,26 +175,27 @@ class ConcertListPanel(wx.Panel):
         self.Bind(wx.EVT_CHOICE, self.setConcertMode)
 
         # make a sizer for the top row
-        topsizer = wx.BoxSizer(wx.HORIZONTAL)
-        topsizer.Add(search, 0, wx.ALIGN_CENTER)
-        topsizer.AddStretchSpacer()
-        topsizer.Add(label, 0, wx.ALIGN_CENTER)
-        topsizer.Add(select, 0, wx.ALIGN_CENTER)
+        tmpsizer = wx.BoxSizer(wx.HORIZONTAL)
+        tmpsizer.Add(search, 0, wx.ALIGN_CENTER)
+        tmpsizer.AddStretchSpacer()
+        tmpsizer.Add(label, 0, wx.ALIGN_CENTER)
+        tmpsizer.Add(select, 0, wx.ALIGN_CENTER)
+        sizer.Add(tmpsizer, 0, wx.EXPAND)
+
+        # now it's time to add the listctrl
+        sizer.Add(self._listctrl, 1, wx.EXPAND)
 
         # make a back button at the bottom
         button = wx.Button(self, CONCERT_BACK_BUTTON_ID, "Back")
-        botsizer = wx.BoxSizer(wx.HORIZONTAL)
-        botsizer.Add(button, 0, wx.ALIGN_CENTER)
+        tmpsizer = wx.BoxSizer(wx.HORIZONTAL)
+        tmpsizer.Add(button, 0, wx.ALIGN_CENTER)
+        sizer.Add(tmpsizer, 0)
 
-        # make a sizer for the panel
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(topsizer, 0, wx.EXPAND)
-        sizer.Add(self._listctrl, 1, wx.EXPAND)
-        sizer.Add(botsizer, 0)
         self.SetSizer(sizer)
 
     def setArtist(self, artist):
         self._listctrl.setArtist(artist)
+        self._label.SetLabel(self._listctrl.getArtistName())
     def download(self):
         self._listctrl.download()
     def clearNew(self):

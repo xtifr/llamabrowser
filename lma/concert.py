@@ -101,6 +101,14 @@ class ConcertList(object):
     def refresh(self):
         """Set up to access the DB according to the current mode."""
 
+        db = database.Db()
+        c = db.cursor()
+
+        # get the name and id
+        c.execute("SELECT aname,lmaid FROM artist where aid = ?",
+                  (self._artist,))
+        (self._aname, self._lmaid) = c.fetchone()
+
         # by default, use left joins, with regular joins to select a type.
         fav_join = browse_join = new_join = "LEFT"
         if self.mode == CVIEW_FAVORITES:
@@ -109,8 +117,6 @@ class ConcertList(object):
             new_join = ""
 
         # now call select using the appropriate join
-        db = database.Db()
-        c = db.cursor()
         c.execute("SELECT c.cid,c.ctitle,c.cdate,f.concertid,c.cyear,n.cid "
                   "  FROM concert AS c "
                   "  %s JOIN favconcert AS f ON f.concertid = c.cid "
@@ -142,6 +148,10 @@ class ConcertList(object):
     def getCount(self):
         """Return the current number of rows."""
         return len(self._data)
+
+    def getArtistName(self):
+        """Return the artist's name."""
+        return(self._aname)
 
     def getConcertID(self, row):
         """Get specified row's main key."""
