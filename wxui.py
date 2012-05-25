@@ -30,7 +30,7 @@ class ArtistListCtrl(wx.ListCtrl):
                  style = (wx.LC_REPORT | wx.LC_VIRTUAL | wx.LC_SINGLE_SEL
                           | wx.LC_HRULES | wx.LC_VRULES)):
         super(ArtistListCtrl, self).__init__(parent, id, style=style)
-        self.list = lma.ArtistList(WxProgressBar)
+        self.alist = lma.ArtistList(WxProgressBar)
 
         self.InsertColumn(0, "Artist Name")
         self.InsertColumn(1, "Last Browsed")
@@ -43,20 +43,20 @@ class ArtistListCtrl(wx.ListCtrl):
         self.reset()
 
     def reset(self):
-        self.SetItemCount(self.list.getCount())
+        self.SetItemCount(self.alist.getCount())
     def setMode(self, mode):
-        self.list.mode = mode
+        self.alist.mode = mode
         self.reset()
     def download(self):
-        self.list.repopulate()
+        self.alist.repopulate()
         self.reset()
     def clearNew(self):
-        self.list.clearNew()
+        self.alist.clearNew()
         self.reset()
 
     # override widget methods
     def OnGetItemText(self, item, column):
-        return self.list.getResult(item, column)
+        return self.alist.getResult(item, column)
 
 class ArtistListPanel(wx.Panel):
     def __init__(self, parent, id=-1):
@@ -90,22 +90,21 @@ class ArtistListPanel(wx.Panel):
         self._listctrl.clearNew()
 
     # method handlers
-    def setArtistMode(self):
+    def setArtistMode(self, event):
         """Event handler, sets display mode."""
         self._listctrl.setMode(event.GetString())
-        
 
 #
 # concert listings
 #
-class WxConcertListCtrl(wx.ListCtrl):
+class ConcertListCtrl(wx.ListCtrl):
     """List box for concerts."""
-    def __init__(self, artist, parent, id=-1,
+    def __init__(self, parent, id=-1,
                  style = (wx.LC_REPORT | wx.LC_VIRTUAL | wx.LC_SINGLE_SEL
                           | wx.LC_HRULES | wx.LC_VRULES)):
-        super(WxConcertListCtrl, self).__init__(parent, id, style=style)
-        self._artist = artist
-        self._list = lma.ConcertList(artist, WxProgressBar)
+        super(ConcertListCtrl, self).__init__(parent, id, style=style)
+        self._artist = ""
+        self.clist = None
 
         self.InsertColumn(0, "Concert Venue")
         self.InsertColumn(1, "Date")
@@ -114,24 +113,66 @@ class WxConcertListCtrl(wx.ListCtrl):
         self.SetColumnWidth(0, 350)
         self.SetColumnWidth(1, 100)
         self.SetColumnWidth(2, 75)
-        self.reset()
 
-    @property
-    def list(self):
-        """Access to the underlying artist list object."""
-        return self._list
     def reset(self):
-        self.SetItemCount(self.list.getCount())
+        if self.clist:
+            self.SetItemCount(self.clist.getCount())
     def setMode(self, mode):
-        self.list.mode = mode
-        self.reset()
+        if self.clist:
+            self.clist.mode = mode
+            self.reset()
     def download(self):
-        self.list.repopulate()
+        if self.clist:
+            self.clist.repopulate()
+            self.reset()
+    def clearNew(self):
+        if self.clist:
+            self.clist.clearNew()
+            self.reset()
+    def setArtist(self, artist):
+        self.clist = lma.ConcertList(artist, WxProgressBar)
         self.reset()
 
     # override widget methods
     def OnGetItemText(self, item, column):
-        return self.list.getResult(item, column)
+        return self.clist.getResult(item, column)
+
+class ConcertListPanel(wx.Panel):
+    def __init__(self, parent, id=-1):
+        super(ConcertListPanel, self).__init__(parent, id)
+
+        # create the list widget
+        self._listctrl = ConcertListCtrl(self, -1)
+
+        # create the top row of widgets
+        search = wx.SearchCtrl(self, -1)
+        label = wx.StaticText(self, -1, "Select:")
+        select = wx.Choice(self, -1, choices=lma.CVIEW_SELECTORS)
+        self.Bind(wx.EVT_CHOICE, self.setConcertMode)
+
+        # make a sizer for the top row
+        topsizer = wx.BoxSizer(wx.HORIZONTAL)
+        topsizer.Add(search, 0, wx.ALIGN_CENTER)
+        topsizer.AddStretchSpacer()
+        topsizer.Add(label, 0, wx.ALIGN_CENTER)
+        topsizer.Add(select, 0, wx.ALIGN_CENTER)
+
+        # make a sizer for the panel
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(topsizer, 0, wx.EXPAND)
+        sizer.Add(self._listctrl, 1, wx.EXPAND)
+        self.SetSizer(sizer)
+
+    def setArtist(self, artist):
+        self._listctrl.setArtist(artist)
+    def download(self):
+        self._listctrl.download()
+    def clearNew(self):
+        self._listctrl.clearNew()
+
+    # method handlers
+    def setConcertMode(self, event):
+        self._listctrl.setMode(event.GetString())
 #
 # Set up main frame
 #
@@ -141,6 +182,8 @@ class WxLMAFrame(wx.Frame):
         super(WxLMAFrame, self).__init__(parent, ID, title, pos, size, style)
 
         self._artist = ArtistListPanel(self, -1)
+        self._concert = ConcertListPanel(self, -1)
+        self._concert.Hide()
         self._sizer = wx.BoxSizer(wx.HORIZONTAL)
         self._sizer.Add(self._artist, 1, wx.EXPAND)
         self.SetSizer(self._sizer)
