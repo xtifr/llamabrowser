@@ -221,7 +221,7 @@ class WxLMAFrame(wx.Frame):
 
         # file menu
         fileMenu = wx.Menu()
-        fileMenu.Append(101, "&Fetch Artists", "Fetch/update artist list")
+        fileMenu.Append(101, "&Fetch Records", "Fetch/update from LMA")
         fileMenu.Append(102, "&Clear New List", "Mark all artists seen.")
         fileMenu.Append(199, "&Quit", "Exit program")
         menubar.Append(fileMenu, "&File")
@@ -234,8 +234,8 @@ class WxLMAFrame(wx.Frame):
         self.SetMenuBar(menubar)
 
         # bind menus
-        self.Bind(wx.EVT_MENU, self.menuFetchArtists, id=101)
-        self.Bind(wx.EVT_MENU, self.menuClearNewArtists, id=102)
+        self.Bind(wx.EVT_MENU, self.menuFetch, id=101)
+        self.Bind(wx.EVT_MENU, self.menuClearNew, id=102)
         self.Bind(wx.EVT_MENU, self.menuQuit, id=199)
 
         self.Bind(wx.EVT_MENU, self.menuAbout, id=201)
@@ -248,6 +248,7 @@ class WxLMAFrame(wx.Frame):
         new.Show()
         self._sizer.Replace(old, new)
         self._sizer.Layout()
+        self._panel = new
         self.Thaw()
 
     # event methods
@@ -255,9 +256,7 @@ class WxLMAFrame(wx.Frame):
         """Method to handle list item selection."""
         ID = event.GetId()
         row = event.GetIndex()
-        print ("Row = " + str(row))
         if ID == ARTIST_LIST_ID:
-            print("Artist = " + str(self._artist.getArtist(row)))
             self._concert.setArtist(self._artist.getArtist(row))
             self.replacePanel(self._concert, self._artist)
 
@@ -269,10 +268,10 @@ class WxLMAFrame(wx.Frame):
 
     ## menu methods
                  
-    def menuFetchArtists(self, event):
-        self._artist.download()
-    def menuClearNewArtists(self, event):
-        self._artist.clearNew()
+    def menuFetch(self, event):
+        self._panel.download()
+    def menuClearNew(self, event):
+        self._panel.clearNew()
     def menuQuit(self, event):
         self.Close()
 
