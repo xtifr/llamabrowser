@@ -24,13 +24,13 @@ class WxProgressBar(object):
 # artist listings
 #
 
-class WxArtistListCtrl(wx.ListCtrl):
+class ArtistListCtrl(wx.ListCtrl):
     """List box for artists."""
     def __init__(self, parent, id=-1, 
                  style = (wx.LC_REPORT | wx.LC_VIRTUAL | wx.LC_SINGLE_SEL
                           | wx.LC_HRULES | wx.LC_VRULES)):
-        super(WxArtistListCtrl, self).__init__(parent, id, style=style)
-        self._list = lma.ArtistList(WxProgressBar)
+        super(ArtistListCtrl, self).__init__(parent, id, style=style)
+        self.list = lma.ArtistList(WxProgressBar)
 
         self.InsertColumn(0, "Artist Name")
         self.InsertColumn(1, "Last Browsed")
@@ -42,10 +42,6 @@ class WxArtistListCtrl(wx.ListCtrl):
 
         self.reset()
 
-    @property
-    def list(self):
-        """Access to the underlying artist list object."""
-        return self._list
     def reset(self):
         self.SetItemCount(self.list.getCount())
     def setMode(self, mode):
@@ -54,10 +50,50 @@ class WxArtistListCtrl(wx.ListCtrl):
     def download(self):
         self.list.repopulate()
         self.reset()
+    def clearNew(self):
+        self.list.clearNew()
+        self.reset()
 
     # override widget methods
     def OnGetItemText(self, item, column):
         return self.list.getResult(item, column)
+
+class ArtistListPanel(wx.Panel):
+    def __init__(self, parent, id=-1):
+        super(ArtistListPanel, self).__init__(parent, id)
+
+        # create the list widget
+        self._listctrl = ArtistListCtrl(self, -1)
+
+        # create the top row of widgets
+        search = wx.SearchCtrl(self, -1)
+        label = wx.StaticText(self, -1, "Select:")
+        select = wx.Choice(self, -1, choices=lma.AVIEW_SELECTORS)
+        self.Bind(wx.EVT_CHOICE, self.setArtistMode)
+
+        # make a sizer for the top row
+        topsizer = wx.BoxSizer(wx.HORIZONTAL)
+        topsizer.Add(search, 0, wx.ALIGN_CENTER)
+        topsizer.AddStretchSpacer()
+        topsizer.Add(label, 0, wx.ALIGN_CENTER)
+        topsizer.Add(select, 0, wx.ALIGN_CENTER)
+
+        # make a sizer for the panel
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(topsizer, 0, wx.EXPAND)
+        sizer.Add(self._listctrl, 1, wx.EXPAND)
+        self.SetSizer(sizer)
+
+    def download(self):
+        self._listctrl.download()
+    def clearNew(self):
+        self._listctrl.clearNew()
+
+    # method handlers
+    def setArtistMode(self):
+        """Event handler, sets display mode."""
+        self._listctrl.setMode(event.GetString())
+        
 
 #
 # concert listings
@@ -104,30 +140,12 @@ class WxLMAFrame(wx.Frame):
                  size=(600, 400), style=wx.DEFAULT_FRAME_STYLE):
         super(WxLMAFrame, self).__init__(parent, ID, title, pos, size, style)
 
-        panel = wx.Panel(self, -1)
-        outersizer = wx.BoxSizer(wx.VERTICAL)
-        innersizer = wx.BoxSizer(wx.HORIZONTAL)
+        self._artist = ArtistListPanel(self, -1)
+        self._sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self._sizer.Add(self._artist, 1, wx.EXPAND)
+        self.SetSizer(self._sizer)
 
-        # add the inner sizer and the artist list to the outer sizer
-        self._alist = WxArtistListCtrl(panel, -1)
-        outersizer.Add(innersizer, 0, wx.EXPAND)
-        outersizer.Add(self._alist, 1, wx.EXPAND)
-
-        # create search and select widgets
-        search = wx.SearchCtrl(panel, -1)
-        sel_label = wx.StaticText(panel, -1, "Select: ")
-        select = wx.Choice(panel, -1, choices=self._alist.list.mode_list)
-        self.Bind(wx.EVT_CHOICE, self.setArtistMode)
-
-        # add the select and search buttons to the inner sizer
-        innersizer.Add(search, 0, wx.ALIGN_CENTER)
-        innersizer.AddStretchSpacer()
-        innersizer.Add(sel_label, 0, wx.ALIGN_CENTER)
-        innersizer.Add(select, 0, wx.ALIGN_CENTER)
-
-        # attach outer size, add status bar
-        panel.SetSizer(outersizer)
-
+        # create statusbar
         self.CreateStatusBar()
         self.SetStatusText("")
 
@@ -155,16 +173,12 @@ class WxLMAFrame(wx.Frame):
 
         self.Bind(wx.EVT_MENU, self.menuAbout, id=201)
 
-    def setArtistMode(self, event):
-        """Event handler, sets display mode."""
-        self._alist.setMode(event.GetString())
-
     ## menu methods
                  
     def menuFetchArtists(self, event):
-        self._alist.download()
+        self._artist.download()
     def menuClearNewArtists(self, event):
-        self._alist.list.clearNew()
+        self._artist.clearNew()
     def menuQuit(self, event):
         self.Close()
 

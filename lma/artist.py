@@ -56,17 +56,17 @@ def clear_new_artists():
 #
 
 # selectors for display mode, separated out for l10n
-VIEW_ALL = _(u"All Artists")
-VIEW_FAVORITES = _(u"Favorites")
-VIEW_BROWSED = _(u"With Concerts")
-VIEW_NEW = _(u"New Artists")
-VIEW_SELECTORS = [VIEW_ALL, VIEW_FAVORITES, VIEW_BROWSED, VIEW_NEW]
+AVIEW_ALL = _(u"All Artists")
+AVIEW_FAVORITES = _(u"Favorites")
+AVIEW_BROWSED = _(u"With Concerts")
+AVIEW_NEW = _(u"New Artists")
+AVIEW_SELECTORS = [AVIEW_ALL, AVIEW_FAVORITES, AVIEW_BROWSED, AVIEW_NEW]
 
 class ArtistList(object):
     """Generic representation of artist list."""
     def __init__(self, progbar = progress.NullProgressBar):
         self._progbar = progbar
-        self._mode = VIEW_ALL
+        self._mode = AVIEW_ALL
         self.refresh()
 
     # properties for mode selection
@@ -87,7 +87,7 @@ class ArtistList(object):
         """List of available selection/display modes.
 
         This is a pseudo property, referring to a global list."""
-        return VIEW_SELECTORS
+        return AVIEW_SELECTORS
 
     def refresh(self):
         """Set up to access the DB according to the current mode."""
@@ -95,11 +95,11 @@ class ArtistList(object):
         # by default, use left joins with both favorite and lastbrowse.
         # use a regular join instead to limit records to just that type.
         fav_join = browse_join = new_join = "LEFT"
-        if self.mode == VIEW_FAVORITES:
+        if self.mode == AVIEW_FAVORITES:
             fav_join = ""
-        elif self.mode == VIEW_BROWSED:
+        elif self.mode == AVIEW_BROWSED:
             browse_join = ""
-        elif self.mode == VIEW_NEW:
+        elif self.mode == AVIEW_NEW:
             new_join = ""
 
         # now call selec using the appropriate join
