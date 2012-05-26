@@ -1,0 +1,16 @@
+Some of these will obviously end up generating subtasks
+
+Big tasks:
+* Add searching capabilities
+* Remove redundant artist name from concert name
+* View concert details
+* Downloading actual concerts
+* Allow interrupting and restarting downloads, by making use of the
+  pubdate field we're already grabbing from the archive.
+* Limit viewing artists by starting letter
+* Limit viewing concerts by year
+* Add actual help
+* Figure out and document licensing
+
+Little tasks:
+* Reset the mode selection widget when showing the concert frame.
