@@ -96,21 +96,9 @@ class ConcertList(object):
         self._artist = artist
         self._progbar = progbar
         self._mode = CVIEW_ALL
+        self._search = None
         self.refresh()
 
-    # properties for each selection
-    @property
-    def mode(self):
-        """The current selection/display mode.
-
-        Setting this may trigger a refresh."""
-        return self._mode
-    @mode.setter
-    def mode(self, value):
-        assert(value in CVIEW_SELECTORS)
-        if self._mode != value:
-            self._mode = value
-            self.refresh()
     def refresh(self):
         """Set up to access the DB according to the current mode."""
 
@@ -129,10 +117,15 @@ class ConcertList(object):
         elif self.mode == CVIEW_NEW:
             joinon = "JOIN newconcert AS n ON n.cid = c.cid"
 
+        # search uses like
+        like = ""
+        if self.search:
+            like = "AND c.ctitle LIKE '%%%s%%'" % self.search
+
         # now call select using the appropriate join
         c.execute("SELECT c.cid FROM concert AS c %s"
-                  "  WHERE c.artistid = '%s' "
-                  "  ORDER BY c.cdate" % (joinon, str(self._artist)))
+                  "  WHERE c.artistid = '%s' %s"
+                  "  ORDER BY c.cdate" % (joinon, str(self._artist), like))
         self._data = [Concert(x[0]) for x in c.fetchall()]
         c.close()
 
@@ -143,6 +136,33 @@ class ConcertList(object):
 
     def clearNew(self):
         clear_new_concerts(self._artist)
+        self.refresh()
+
+    # properties for each selection
+    @property
+    def mode(self):
+        """The current selection/display mode.
+
+        Setting this may trigger a refresh."""
+        return self._mode
+    @mode.setter
+    def mode(self, value):
+        assert(value in CVIEW_SELECTORS)
+        if self._mode != value:
+            self._mode = value
+            self.refresh()
+
+    @property
+    def search(self):
+        """current search string, limiting the selection."""
+        return self._search
+    @search.setter
+    def search(self, string):
+        self._search = str(string)
+        self.refresh()
+    @search.deleter
+    def search(self):
+        self._search = None
         self.refresh()
 
     @property

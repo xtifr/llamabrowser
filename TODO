@@ -1,11 +1,19 @@
 Some of these will obviously end up generating subtasks
 
-Big tasks:
-* Add searching capabilities
+For initial release:
+
 * Choose favorites (artists and concerts)
-* Remove redundant artist name from concert name
 * View concert details
 * Downloading actual concerts
+* Add actual help
+* Test suites
+* Figure out and document licensing
+Little tasks:
+* Reset the mode selection widget when showing the concert frame.
+
+Longer term
+
+* Remove redundant artist name from concert name
 * Allow user to define arbitrary tags (similar to the favorites flag)
   and attach them to artists and shows, and then use them for selection.
   (Should be combinable with other selection methods.)
@@ -13,9 +21,3 @@ Big tasks:
   pubdate field we're already grabbing from the archive.
 * Limit viewing artists by starting letter
 * Limit viewing concerts by year
-* Add actual help
-* Test suites
-* Figure out and document licensing
-
-Little tasks:
-* Reset the mode selection widget when showing the concert frame.

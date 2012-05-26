@@ -8,6 +8,7 @@ import wx
 ARTIST_LIST_ID = 10
 CONCERT_LIST_ID = 11
 
+# ARIST_BACK_BUTTON_ID = 20 # doesn't exist
 CONCERT_BACK_BUTTON_ID = 21
 
 #
@@ -55,6 +56,12 @@ class ArtistListCtrl(wx.ListCtrl):
     def setMode(self, mode):
         self.alist.mode = mode
         self.reset()
+    def setSearch(self, string):
+        self.alist.search = string
+        self.reset()
+    def clearSearch(self):
+        del(self.alist.search)
+        self.reset()
     def download(self):
         self.alist.repopulate()
         self.reset()
@@ -84,7 +91,10 @@ class ArtistListPanel(wx.Panel):
         self._listctrl = ArtistListCtrl(self, ARTIST_LIST_ID)
 
         # create the top row of widgets
-        search = wx.SearchCtrl(self, -1)
+        search = wx.SearchCtrl(self, -1, style = wx.TE_PROCESS_ENTER)
+        search.ShowCancelButton(True)
+        self.Bind(wx.EVT_TEXT_ENTER, self.OnSearch, search)
+        self.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.OnCancelSearch)
         label = wx.StaticText(self, -1, "Select:")
         select = wx.Choice(self, -1, choices=lma.AVIEW_SELECTORS)
         self.Bind(wx.EVT_CHOICE, self.setArtistMode)
@@ -113,6 +123,12 @@ class ArtistListPanel(wx.Panel):
     def setArtistMode(self, event):
         """Event handler, sets display mode."""
         self._listctrl.setMode(event.GetString())
+    def OnSearch(self, event):
+        """Event handler for search widget."""
+        self._listctrl.setSearch(event.GetString())
+    def OnCancelSearch(self, event):
+        """Event handler to clear search widget"""
+        self._listctrl.clearSearch()
 
 #
 # concert listings
@@ -140,6 +156,14 @@ class ConcertListCtrl(wx.ListCtrl):
     def setMode(self, mode):
         if self.clist != None:
             self.clist.mode = mode
+            self.reset()
+    def setSearch(self, string):
+        if self.clist != None:
+            self.clist.search = string
+            self.reset()
+    def clearSearch(self):
+        if self.clist != None:
+            del(self.clist.search)
             self.reset()
     def download(self):
         if self.clist != None:
@@ -183,7 +207,10 @@ class ConcertListPanel(wx.Panel):
         sizer.Add(tmpsizer, 0, wx.ALIGN_CENTER)
 
         # create the top row of widgets
-        search = wx.SearchCtrl(self, -1)
+        search = wx.SearchCtrl(self, -1, style = wx.TE_PROCESS_ENTER)
+        search.ShowCancelButton(True)
+        self.Bind(wx.EVT_TEXT_ENTER, self.OnSearch, search)
+        self.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.OnCancelSearch)
         label = wx.StaticText(self, -1, "Select:")
         select = wx.Choice(self, -1, choices=lma.CVIEW_SELECTORS)
         self.Bind(wx.EVT_CHOICE, self.setConcertMode)
@@ -218,6 +245,12 @@ class ConcertListPanel(wx.Panel):
     # method handlers
     def setConcertMode(self, event):
         self._listctrl.setMode(event.GetString())
+    def OnSearch(self, event):
+        """Event handler for search widget."""
+        self._listctrl.setSearch(event.GetString())
+    def OnCancelSearch(self, event):
+        """Event andler to clear search widget."""
+        self._listctrl.clearSearch()
 #
 # Set up main frame
 #

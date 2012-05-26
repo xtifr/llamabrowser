@@ -84,6 +84,42 @@ class ArtistList(object):
     def __init__(self, progbar = progress.NullProgressBar):
         self._progbar = progbar
         self._mode = AVIEW_ALL
+        self._search = None
+        self.refresh()
+
+    def refresh(self):
+        """Set up to access the DB according to the current mode."""
+
+        # modes use inner join to restrict output
+        joinon = ""
+        if self.mode == AVIEW_FAVORITES:
+            joinon = "JOIN favorite AS f ON f.artistid = a.aid"
+        elif self.mode == AVIEW_BROWSED:
+            joinon = "JOIN lastbrowse AS b ON b.aid = a.aid"
+        elif self.mode == AVIEW_NEW:
+            joinon = "JOIN newartist as n ON n.aid = a.aid"
+
+        # search uses "like"
+        like = ""
+        if self.search:
+            like = "WHERE a.aname LIKE '%%%s%%'" % self.search
+
+        # now call select using the appropriate join
+        db = database.Db()
+        c = db.cursor()
+        c.execute("SELECT a.aid FROM artist AS a %s %s "
+                  "  ORDER BY a.aname" % (joinon, like))
+        self._data = [Artist(x[0]) for x in c.fetchall()]
+        c.close()
+
+    def repopulate(self):
+        """Update the DB from the internet, then refresh."""
+        download_artists(self._progbar)
+        self.refresh()
+
+    def clearNew(self):
+        """Clear the new list, then refresh."""
+        clear_new_artists()
         self.refresh()
 
     # properties for mode selection
@@ -100,34 +136,17 @@ class ArtistList(object):
             self._mode = value
             self.refresh()
 
-    def refresh(self):
-        """Set up to access the DB according to the current mode."""
-
-        # modes use inner join to restrict output
-        joinon = ""
-        if self.mode == AVIEW_FAVORITES:
-            joinon = "JOIN favorite AS f ON f.artistid = a.aid"
-        elif self.mode == AVIEW_BROWSED:
-            joinon = "JOIN lastbrowse AS b ON b.aid = a.aid"
-        elif self.mode == AVIEW_NEW:
-            joinon = "JOIN newartist as n ON n.aid = a.aid"
-
-        # now call select using the appropriate join
-        db = database.Db()
-        c = db.cursor()
-        c.execute("SELECT a.aid FROM artist AS a %s "
-                  "  ORDER BY a.aname" % (joinon,))
-        self._data = [Artist(x[0]) for x in c.fetchall()]
-        c.close()
-
-    def repopulate(self):
-        """Update the DB from the internet, then refresh."""
-        download_artists(self._progbar)
+    @property
+    def search(self):
+        """The current search string, limiting the selection."""
+        return self._search
+    @search.setter
+    def search(self, string):
+        self._search = str(string)
         self.refresh()
-
-    def clearNew(self):
-        """Clear the new list, then refresh."""
-        clear_new_artists()
+    @search.deleter
+    def search(self):
+        self._search = None
         self.refresh()
 
     # support reading like an array
