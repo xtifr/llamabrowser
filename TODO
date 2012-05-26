@@ -17,6 +17,7 @@ Little tasks:
 Longer term
 
 * Remove redundant artist name from concert name
+* (Option): ignore leading "The" and "A" when sorting artists.
 * Allow user to define arbitrary tags (similar to the favorites flag)
   and attach them to artists and shows, and then use them for selection.
   (Should be combinable with other selection methods.)
@@ -24,3 +25,10 @@ Longer term
   pubdate field we're already grabbing from the archive.
 * Limit viewing artists by starting letter
 * Limit viewing concerts by year
+* reviews / stars
+** browsing
+** posting
+* Hide artists/concerts (just not interested)
+* Alternative sorting options for display.
+* Broad cross-artist Archive search for songs, etc.
+  (Basically, formulate custom searches and handle the results specially.)

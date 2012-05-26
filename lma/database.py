@@ -52,6 +52,7 @@ class DbRecord(object):
         if value == None:
             return ""
         return value[0]
+
     def getDbBool(self, table, col, matchcol=None):
         """Special query for a boolean column."""
         if matchcol == None: matchcol = col
