@@ -36,6 +36,34 @@ class Db(object):
         """Delegate unknown attributes to the singleton DB handle."""
         return getattr(Db._db, name)
 
+class DbRecord(object):
+    """Abstract base class for defining virtual records.
+    
+    Derived classes can define attributes that use getDBInfo to
+    look up their values."""
+    def __init__(self, Id):
+        self._value = str(int(Id))
+    def getDbInfo(self, table, col, matchcol):
+        """Find entry in table matching self."""
+        c = Db().cursor()
+        value = c.execute("SELECT %s FROM %s WHERE %s = ?" % (
+                col, table, matchcol), (self._value,)).fetchone()
+        c.close()
+        if value == None:
+            return ""
+        return value[0]
+    def getDbBool(self, table, col, matchcol=None):
+        """Special query for a boolean column."""
+        if matchcol == None: matchcol = col
+        val = self.getDbInfo(table, col, matchcol)
+        if val == "": return False
+        return True
+
+    def __str__(self):
+        return str(self._value)
+    def __int__(self):
+        return int(self._value)
+
 #
 # Function to create our initial tables
 #

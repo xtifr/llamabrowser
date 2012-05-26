@@ -51,7 +51,7 @@ class ArtistListCtrl(wx.ListCtrl):
         self.reset()
 
     def reset(self):
-        self.SetItemCount(self.alist.getCount())
+        self.SetItemCount(len(self.alist))
     def setMode(self, mode):
         self.alist.mode = mode
         self.reset()
@@ -62,11 +62,18 @@ class ArtistListCtrl(wx.ListCtrl):
         self.alist.clearNew()
         self.reset()
     def getArtist(self, row):
-        return self.alist.getArtistID(row)
+        return self.alist[row]
 
     # override widget methods
     def OnGetItemText(self, item, column):
-        return self.alist.getResult(item, column)
+        if column == 0:
+            return self.alist[item].name
+        elif column == 1:
+            return self.alist[item].browsedate
+        elif column == 2:
+            if self.alist[item].favorite:
+                return "Y"
+            return ""
 
 class ArtistListPanel(wx.Panel):
     def __init__(self, parent, id=-1):
@@ -116,7 +123,7 @@ class ConcertListCtrl(wx.ListCtrl):
                  style = (wx.LC_REPORT | wx.LC_VIRTUAL | wx.LC_SINGLE_SEL
                           | wx.LC_HRULES | wx.LC_VRULES)):
         super(ConcertListCtrl, self).__init__(parent, id, style=style)
-        self._artist = ""
+        self._artist = None
         self.clist = None
 
         self.InsertColumn(0, "Concert Venue")
@@ -128,29 +135,36 @@ class ConcertListCtrl(wx.ListCtrl):
         self.SetColumnWidth(2, 75)
 
     def reset(self):
-        if self.clist:
-            self.SetItemCount(self.clist.getCount())
+        if self.clist != None:
+            self.SetItemCount(len(self.clist))
     def setMode(self, mode):
-        if self.clist:
+        if self.clist != None:
             self.clist.mode = mode
             self.reset()
     def download(self):
-        if self.clist:
+        if self.clist != None:
             self.clist.repopulate()
             self.reset()
     def clearNew(self):
-        if self.clist:
+        if self.clist != None:
             self.clist.clearNew()
             self.reset()
     def setArtist(self, artist):
         self.clist = lma.ConcertList(artist, WxProgressBar)
         self.reset()
     def getArtistName(self):
-        return self.clist.getArtistName()
+        return self.clist.artistName
 
     # override widget methods
-    def OnGetItemText(self, item, column):
-        return self.clist.getResult(item, column)
+    def OnGetItemText(self, row, column):
+        if column == 0:
+            return self.clist[row].name
+        elif column == 1:
+            return self.clist[row].date
+        elif column == 2:
+            if self.clist[row].favorite:
+                return "Y"
+            return ""
 
 class ConcertListPanel(wx.Panel):
     def __init__(self, parent, id=-1):
@@ -195,7 +209,7 @@ class ConcertListPanel(wx.Panel):
 
     def setArtist(self, artist):
         self._listctrl.setArtist(artist)
-        self._label.SetLabel(self._listctrl.getArtistName())
+        self._label.SetLabel(artist.name)
     def download(self):
         self._listctrl.download()
     def clearNew(self):
@@ -254,12 +268,14 @@ class WxLMAFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.menuAbout, id=201)
 
     #
-    def replacePanel(self, new, old):
+    def replacePanel(self, new):
         """Choose a new panel."""
+        if new == self._panel:
+            return
         self.Freeze()
-        old.Hide()
+        self._panel.Hide()
         new.Show()
-        self._sizer.Replace(old, new)
+        self._sizer.Replace(self._panel, new)
         self._sizer.Layout()
         self._panel = new
         self.Thaw()
@@ -271,13 +287,13 @@ class WxLMAFrame(wx.Frame):
         row = event.GetIndex()
         if ID == ARTIST_LIST_ID:
             self._concert.setArtist(self._artist.getArtist(row))
-            self.replacePanel(self._concert, self._artist)
+            self.replacePanel(self._concert)
 
     def OnButton(self, event):
         """Method to handle various buttons."""
         ID = event.GetId()
         if ID == CONCERT_BACK_BUTTON_ID:
-            self.replacePanel(self._artist, self._concert)
+            self.replacePanel(self._artist)
 
     ## menu methods
                  

@@ -62,6 +62,23 @@ AVIEW_BROWSED = _(u"With Concerts")
 AVIEW_NEW = _(u"New Artists")
 AVIEW_SELECTORS = [AVIEW_ALL, AVIEW_FAVORITES, AVIEW_BROWSED, AVIEW_NEW]
 
+#
+# db wrapper for an artist ID
+#
+class Artist(database.DbRecord):
+    """Object to wrap an artist ID and calculate various attributes."""
+    def __init__(self, artist):
+        super(Artist, self).__init__(artist)
+    @property
+    def name(self):
+        return super(Artist,self).getDbInfo("artist", "aname", "aid")
+    @property
+    def browsedate(self):
+        return super(Artist,self).getDbInfo("lastbrowse", "browsedate", "aid")
+    @property
+    def favorite(self):
+        return super(Artist,self).getDbBool("favorite", "artistid")
+
 class ArtistList(object):
     """Generic representation of artist list."""
     def __init__(self, progbar = progress.NullProgressBar):
@@ -72,46 +89,35 @@ class ArtistList(object):
     # properties for mode selection
     @property
     def mode(self):
-        """The current selection/display mode -- a value from mode_list.
+        """The current selection/display mode.
 
         Setting this may trigger a refresh."""
         return self._mode
     @mode.setter
     def mode(self, value):
-        assert(value in self.mode_list)
+        assert(value in AVIEW_SELECTORS)
         if self._mode != value:
             self._mode = value
             self.refresh()
-    @property
-    def mode_list(self):
-        """List of available selection/display modes.
-
-        This is a pseudo property, referring to a global list."""
-        return AVIEW_SELECTORS
 
     def refresh(self):
         """Set up to access the DB according to the current mode."""
 
-        # by default, use left joins with both favorite and lastbrowse.
-        # use a regular join instead to limit records to just that type.
-        fav_join = browse_join = new_join = "LEFT"
+        # modes use inner join to restrict output
+        joinon = ""
         if self.mode == AVIEW_FAVORITES:
-            fav_join = ""
+            joinon = "JOIN favorite AS f ON f.artistid = a.aid"
         elif self.mode == AVIEW_BROWSED:
-            browse_join = ""
+            joinon = "JOIN lastbrowse AS b ON b.aid = a.aid"
         elif self.mode == AVIEW_NEW:
-            new_join = ""
+            joinon = "JOIN newartist as n ON n.aid = a.aid"
 
-        # now call selec using the appropriate join
+        # now call select using the appropriate join
         db = database.Db()
         c = db.cursor()
-        c.execute("SELECT a.aid, a.aname, b.browsedate, f.artistid, n.aid "
-                  "  FROM artist AS a "
-                  "  %s JOIN favorite AS f ON f.artistid = a.aid "
-                  "  %s JOIN lastbrowse AS b ON b.aid = a.aid "
-                  "  %s JOIN newartist AS n ON n.aid = a.aid "
-                  "  ORDER BY a.aname" % (fav_join, browse_join, new_join))
-        self._data = c.fetchall()
+        c.execute("SELECT a.aid FROM artist AS a %s "
+                  "  ORDER BY a.aname" % (joinon,))
+        self._data = [Artist(x[0]) for x in c.fetchall()]
         c.close()
 
     def repopulate(self):
@@ -124,20 +130,8 @@ class ArtistList(object):
         clear_new_artists()
         self.refresh()
 
-    # methods used directly by the UI
-    def getResult(self, row, col):
-        """Return the value for a given row and column."""
-        value = self._data[row][col+1]
-        if value == None:
-            return ""
-        if col == 2:
-            return "Y"
-        return value
-
-    def getCount(self):
-        """Return the current number of rows."""
+    # support reading like an array
+    def __getitem__(self, i):
+        return self._data[i]
+    def __len__(self):
         return len(self._data)
-
-    def getArtistID(self, row):
-        """Get specified row's main key."""
-        return self._data[row][0]

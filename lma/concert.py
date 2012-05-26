@@ -54,11 +54,13 @@ def download_concerts(artist, progbar = progress.NullProgressBar):
 
 def clear_new_concerts(artist):
     """Clear an artist's new concert list."""
-    artist = str(int(artist))        # make sure
+    artist = str(int(artist))
     db = database.Db()
-    db.execute("DELETE FROM newconcert WHERE cid IN "
+    c = db.cursor()
+    c.execute("DELETE FROM newconcert WHERE cid IN "
                "  (SELECT cid FROM concert WHERE artistid = ?)", (artist,))
     db.commit()
+    c.close()
 
 #
 # Prepare a list of concerts
@@ -70,10 +72,28 @@ CVIEW_FAVORITES = _(u"Favorites")
 CVIEW_NEW = _(u"New Concerts")
 CVIEW_SELECTORS = [CVIEW_ALL, CVIEW_FAVORITES, CVIEW_NEW]
 
+#
+# db wrapper for a concert id
+#
+
+class Concert(database.DbRecord):
+    """Object to wrap a concert ID and calculate various attributes."""
+    def __init__(self, concert):
+        super(Concert, self).__init__(concert)
+    @property
+    def name(self):
+        return super(Concert,self).getDbInfo("concert", "ctitle", "cid")
+    @property
+    def date(self):
+        return super(Concert,self).getDbInfo("concert", "cdate", "cid")
+    @property
+    def favorite(self):
+        return super(Concert,self).getDbBool("favconcert", "concertid")
+
 class ConcertList(object):
     """Generic representation of a concert list."""
     def __init__(self, artist, progbar = progress.NullProgressBar):
-        self._artist = str(int(artist))
+        self._artist = artist
         self._progbar = progbar
         self._mode = CVIEW_ALL
         self.refresh()
@@ -81,23 +101,16 @@ class ConcertList(object):
     # properties for each selection
     @property
     def mode(self):
-        """The current selection/display mode -- a value from mode_list.
+        """The current selection/display mode.
 
         Setting this may trigger a refresh."""
         return self._mode
     @mode.setter
     def mode(self, value):
-        assert(value in self.mode_list)
+        assert(value in CVIEW_SELECTORS)
         if self._mode != value:
             self._mode = value
             self.refresh()
-    @property
-    def mode_list(self):
-        """List of available selection/display modes.
-
-        This is a psuedo property, referring to a global list."""
-        return CVIEW_SELECTORS
-
     def refresh(self):
         """Set up to access the DB according to the current mode."""
 
@@ -106,24 +119,21 @@ class ConcertList(object):
 
         # get the name and id
         c.execute("SELECT aname,lmaid FROM artist where aid = ?",
-                  (self._artist,))
+                  (str(self._artist),))
         (self._aname, self._lmaid) = c.fetchone()
 
-        # by default, use left joins, with regular joins to select a type.
-        fav_join = browse_join = new_join = "LEFT"
+        # modes user inner join to restrict output
+        joinon = ""
         if self.mode == CVIEW_FAVORITES:
-            fav_join = ""
+            joinon = "JOIN favconcert AS f ON f.concertid = c.cid"
         elif self.mode == CVIEW_NEW:
-            new_join = ""
+            joinon = "JOIN newconcert AS n ON n.cid = c.cid"
 
         # now call select using the appropriate join
-        c.execute("SELECT c.cid,c.ctitle,c.cdate,f.concertid,c.cyear,n.cid "
-                  "  FROM concert AS c "
-                  "  %s JOIN favconcert AS f ON f.concertid = c.cid "
-                  "  %s JOIN newconcert AS n ON n.cid = c.cid "
+        c.execute("SELECT c.cid FROM concert AS c %s"
                   "  WHERE c.artistid = '%s' "
-                  "  ORDER BY c.cdate" % (fav_join, new_join, self._artist))
-        self._data = c.fetchall()
+                  "  ORDER BY c.cdate" % (joinon, str(self._artist)))
+        self._data = [Concert(x[0]) for x in c.fetchall()]
         c.close()
 
     def repopulate(self):
@@ -132,27 +142,15 @@ class ConcertList(object):
         self.refresh()
 
     def clearNew(self):
-        clear_new_artists(self._artist)
+        clear_new_concerts(self._artist)
         self.refresh()
 
-    # methods used directly by the UI
-    def getResult(self, row, col):
-        """Return the value for a given row and column."""
-        value = self._data[row][col+1]
-        if value == None:
-            return ""
-        if col == 2:
-            return "Y"
-        return value
+    @property
+    def artistName(self):
+        return(self._artist.name)
 
-    def getCount(self):
-        """Return the current number of rows."""
+    # support reading like an array
+    def __getitem__(self, i):
+        return self._data[i]
+    def __len__(self):
         return len(self._data)
-
-    def getArtistName(self):
-        """Return the artist's name."""
-        return(self._aname)
-
-    def getConcertID(self, row):
-        """Get specified row's main key."""
-        return self._data[row][0]
