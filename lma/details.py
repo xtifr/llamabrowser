@@ -26,7 +26,6 @@ class MetaXMLHandler(xmlhandler.ContentHandler):
         pass
     def startElement(self, name, attrs):
         """Check for elements of interest."""
-        print ("found name: %s" % name)
         if name in ["description", "coverage", "uploader", "md5s",
                     "taper", "lineage", "has_mp3", "discs"]:
             self._key = name
