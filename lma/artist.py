@@ -39,8 +39,14 @@ def download_artists(progbar = progress.NullProgressBar):
     # now update the last-updated field
     c.execute("UPDATE lma_config SET last_artist_read = date('now')"
                "WHERE recnum = 1")
+
     db.commit()
     c.close()
+
+    # clear newlist on first time through
+    if lastdate == None:
+        clear_new_artists()
+
 
 #
 # reset the new artist list

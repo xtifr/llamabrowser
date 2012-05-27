@@ -45,8 +45,14 @@ def download_concerts(artist, progbar = progress.NullProgressBar):
     # now update the artist's last-updated field
     c.execute("INSERT OR REPLACE INTO lastbrowse (aid, browsedate)"
               "  VALUES (?, date('now'))", (artist,))
+
     db.commit()
     c.close()
+
+    # clear newlist on first time through
+    if lastdate == None:
+        clear_new_concerts(artist)
+
 
 #
 # reset new concert list for given artist
