@@ -8,6 +8,7 @@ The ProgressIter class allows hooking a UI callback into a Query."""
 
 import time
 import urllib2
+from . import archive
 from . import progress
 
 # main fields we'll want to use
@@ -61,12 +62,12 @@ class Result (object):
                  "output=json"] +
                 ["fl[]=" + urllib2.quote(f) for f in self._field] +
                 ["sort[]=" + urllib2.quote(s) for s in self._sort])
-        return ("http://archive.org/advancedsearch.php?" + "&".join(body))
+        return "&".join(body)
 
     def read_page(self):
         """Read the next page of data from the Archive. (Internal)"""
         
-        hand = urllib2.urlopen(self.make_json_url())
+        hand = archive.archive_open(self.make_json_url(), search=True)
         try:
             data = hand.read()
         finally:

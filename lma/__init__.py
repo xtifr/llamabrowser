@@ -22,6 +22,8 @@ stored in the local database."""
 
 __version__ = '0.1'
 
+from lma.archive import (archive_open)
+
 from lma.query import (Query, ProgressIter, IDENTIFIER, TITLE, COLLECTION,
                        MEDIATYPE, PUBDATE, DATE, YEAR, FORMAT,
                        BAND_QUERY, CONCERT_QUERY, STANDARD_FIELDS)
