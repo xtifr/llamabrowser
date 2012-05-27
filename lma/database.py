@@ -1,4 +1,4 @@
-!/usr/bin/env python
+#!/usr/bin/env python
 """Local database access for LMA data.
 
 Assuming sqlite3 for now.  May allow other DBs for shared access in
