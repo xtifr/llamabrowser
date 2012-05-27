@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+!/usr/bin/env python
 """Local database access for LMA data.
 
 Assuming sqlite3 for now.  May allow other DBs for shared access in
@@ -78,7 +78,7 @@ DROP TABLE IF EXISTS lma_config;
 CREATE TABLE lma_config (
     recnum INTEGER UNIQUE PRIMARY KEY,
     version INTEGER,
-    last_artist_read date
+    last_artist_read DATE
 );
 -- create single record
 BEGIN;
@@ -98,9 +98,9 @@ DROP TABLE IF EXISTS artist;
 
 -- main artist table
 CREATE TABLE artist (
-    aid INTEGER UNIQUE PRIMARY KEY, 
-    aname VARCHAR[100] NOT NULL,
-    lmaid VARCHAR[100]  UNIQUE NOT NULL -- LMA identifier
+    aid   INTEGER UNIQUE PRIMARY KEY, 
+    aname VARCHAR(100) NOT NULL,
+    lmaid VARCHAR(100) UNIQUE NOT NULL -- LMA identifier
 );
 
 CREATE TABLE favorite (
@@ -123,11 +123,11 @@ CREATE TRIGGER afterartist AFTER INSERT ON artist
 
 -- main concert table
 CREATE TABLE concert (
-    cid INTEGER UNIQUE PRIMARY KEY,
-    ctitle VARCHAR[100] NOT NULL,          --displayable name
-    lmaid  VARCHAR[100] UNIQUE NOT NULL,
-    cyear  CHAR[4] NOT NULL,
-    cdate DATE,
+    cid      INTEGER UNIQUE PRIMARY KEY,
+    ctitle   VARCHAR(100) NOT NULL,          --displayable name
+    lmaid    VARCHAR(100) UNIQUE NOT NULL,
+    cyear    CHAR(4) NOT NULL,
+    cdate    DATE,
     artistid INTEGER REFERENCES artist(aid)
 );
 
@@ -145,8 +145,8 @@ CREATE TRIGGER afterconcert AFTER INSERT ON concert
 
 -- song table
 CREATE TABLE song (
-    sid INTEGER UNIQUE PRIMARY KEY,
-    sname      VARCHAR[100] NOT NULL,
-    base_fname VARCHAR[100] NOT NULL,  -- base filename (without extension)
-    concertid INTEGER REFERENCES concert(cid)
+    sid        INTEGER UNIQUE PRIMARY KEY,
+    sname      VARCHAR(100) NOT NULL,
+    base_fname VARCHAR(100) NOT NULL,  -- base filename (without extension)
+    concertid  INTEGER REFERENCES concert(cid)
 );""")
