@@ -95,6 +95,9 @@ class Concert(database.DbRecord):
     @property
     def favorite(self):
         return super(Concert,self).getDbBool("favconcert", "concertid")
+    @property
+    def lmaid(self):
+        return super(Concert,self).getDbInfo("concert", "lmaid", "cid")
 
 class ConcertList(object):
     """Generic representation of a concert list."""
