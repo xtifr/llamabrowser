@@ -76,7 +76,7 @@ PRAGMA foreign_key = ON;
 -- config table
 DROP TABLE IF EXISTS lma_config;
 CREATE TABLE lma_config (
-    recnum INTEGER,
+    recnum INTEGER UNIQUE PRIMARY KEY,
     version INTEGER,
     last_artist_read date
 );
@@ -98,23 +98,23 @@ DROP TABLE IF EXISTS artist;
 
 -- main artist table
 CREATE TABLE artist (
-    aid INTEGER PRIMARY KEY, 
-    aname TEXT NOT NULL,
-    lmaid TEXT UNIQUE NOT NULL -- LMA identifier
+    aid INTEGER UNIQUE PRIMARY KEY, 
+    aname VARCHAR[100] NOT NULL,
+    lmaid VARCHAR[100]  UNIQUE NOT NULL -- LMA identifier
 );
 
 CREATE TABLE favorite (
-    artistid INTEGER REFERENCES artist(aid)
+    artistid INTEGER UNIQUE REFERENCES artist(aid)
 );
 
 -- last time concert list downloaded for given artist
 CREATE TABLE lastbrowse (
-    aid INTEGER REFERENCES artist(aid),
+    aid INTEGER UNIQUE REFERENCES artist(aid),
     browsedate DATE
 );
 
 CREATE TABLE newartist (
-    aid INTEGER REFERENCES artist(aid)
+    aid INTEGER UNIQUE REFERENCES artist(aid)
 );
 CREATE TRIGGER afterartist AFTER INSERT ON artist
   FOR EACH ROW BEGIN
@@ -123,20 +123,20 @@ CREATE TRIGGER afterartist AFTER INSERT ON artist
 
 -- main concert table
 CREATE TABLE concert (
-    cid INTEGER PRIMARY KEY,
-    ctitle TEXT NOT NULL,          --displayable name
-    lmaid TEXT UNIQUE NOT NULL,
-    cyear TEXT NOT NULL,
+    cid INTEGER UNIQUE PRIMARY KEY,
+    ctitle VARCHAR[100] NOT NULL,          --displayable name
+    lmaid  VARCHAR[100] UNIQUE NOT NULL,
+    cyear  CHAR[4] NOT NULL,
     cdate DATE,
     artistid INTEGER REFERENCES artist(aid)
 );
 
 CREATE TABLE favconcert (
-    concertid INTEGER REFERENCES concert(cid)
+    concertid INTEGER UNIQUE REFERENCES concert(cid)
 );
 
 CREATE TABLE newconcert (
-     cid INTEGER REFERENCES concert(cid)
+     cid INTEGER UNIQUE REFERENCES concert(cid)
 );
 CREATE TRIGGER afterconcert AFTER INSERT ON concert
   FOR EACH ROW BEGIN
@@ -145,8 +145,8 @@ CREATE TRIGGER afterconcert AFTER INSERT ON concert
 
 -- song table
 CREATE TABLE song (
-    sid INTEGER PRIMARY KEY,
-    sname TEXT NOT NULL,
-    base_fname TEXT NOT NULL,  -- base filename (without extension)
+    sid INTEGER UNIQUE PRIMARY KEY,
+    sname      VARCHAR[100] NOT NULL,
+    base_fname VARCHAR[100] NOT NULL,  -- base filename (without extension)
     concertid INTEGER REFERENCES concert(cid)
 );""")
