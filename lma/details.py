@@ -7,9 +7,15 @@ details from the archive, because the details are stored in XML files."""
 import os
 import xml.sax
 import xml.sax.handler as xmlhandler
-import hashlib # for sha1
+import hashlib # for md5/sha1
 from . import archive
 from . import concert
+
+lossless_audio_formats = ["shorten", "flac", "24bit flac", "wave", "aiff",
+                          "windows media audio", "apple lossless audio"]
+lossy_audio_formats = [ "ogg vorbis", "vbr mp3", "256kbps mp3", "64kbps mp3"]
+graphics_formats = ["jpeg", "png", "gif"]
+
 
 #
 # metadata SAX handler
@@ -26,8 +32,8 @@ class MetaXMLHandler(xmlhandler.ContentHandler):
         pass
     def startElement(self, name, attrs):
         """Check for elements of interest."""
-        if name in ["description", "coverage", "uploader", "md5s",
-                    "taper", "lineage", "has_mp3", "discs"]:
+        if name in ["description", "coverage", "notes", "lineage",
+                    "taper", "transferer", "has_mp3", "discs"]:
             self._key = name
             self._value = []
     def characters(self, content):
@@ -76,8 +82,9 @@ class FileXMLHandler(xmlhandler.ContentHandler):
             self._filedata["source"] = attrs.getValue("source")
         elif self._filedata != None:
             # we're processing a file
-            self._key = name
-            self._value = []
+            if name in ['original', 'md5', 'format', 'album', 'title', 'track']:
+                self._key = name
+                self._value = []
     def characters(self, content):
         """we only care about text in file subelements."""
         if self._key != None:
@@ -91,8 +98,6 @@ class FileXMLHandler(xmlhandler.ContentHandler):
             elif name == "file":
                 self._data.append(self._filedata)
                 self._filedata = None
-            else:
-                raise xml.sax.SAXParseException("Malformed _files.xml file")
     def endDocument(self):
         pass
     def getData(self):
@@ -108,3 +113,67 @@ def get_filelist_data(lmaid):
     finally:
         hand.close()
     return reader.getData()
+
+
+def organize_filelist(files):
+    """organize the file data into something useful."""
+
+    songs = {}     # name : record
+    metadata = []
+    graphics = []
+    zips = []
+    other = []
+
+    for f in files:
+        # find the file's format
+        if not f.has_key('format') or not f.has_key('name'):
+            other.append(f)
+            continue
+
+        f_name = f['name']
+        f_format = f['format'].lower()
+        f_source = f['source'].lower()
+
+        if f_format == 'text':
+            other.append(f)
+            continue
+        if f_format.endswith("zip"):
+            zips.append(f)
+            continue
+        if (f_source == 'metadata'
+            or f_format in ['checksums', 'flac fingerprint']):
+            metadata.append(f)
+            continue
+        if f_format in graphics_formats:
+            graphics.append(f)
+            continue
+
+        if f_format in lossless_audio_formats: # original
+            # record may have been made for lossy derivative
+            if songs.has_key(f_name):
+                songs[f_name].update(f)
+            else:
+                songs[f_name] = f
+            continue
+
+        if f_format in lossy_audio_formats: # derivative
+            # all we need is the format and the md5
+            f_key = 'derivative'
+            f_value = {f_format : f['md5']}
+
+            # data goes in record for lossless original
+            f_original = f['original']
+            if not songs.has_key(f_original):
+                songs[f_original] = {f_key : {}}
+            # add or merge with possibly-existing derivative record
+            dest = songs[f_original]
+            if dest.has_key(f_key):
+                dest[f_key].update(f_value)
+            else:
+                dest[f_key] = f_value
+            continue
+
+        # everything else goes in other
+        other.append(f)
+
+    return (songs, metadata, graphics, zips, other)
