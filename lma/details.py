@@ -217,6 +217,7 @@ class ConcertDetails(object):
         """Get the details either from local cache or the LMA."""
         self._concert = concert
         self._saved = False
+        self._data = None
         self.loadFromCache()
         if self._data == None:
             self.loadFromArchive()
@@ -231,7 +232,7 @@ class ConcertDetails(object):
                   (str(self._concert),))
         result = c.fetchone()
         if result == None:
-            return None
+            return
         self._data = {}
         for i in xrange(len(result)):
             self._data[meta_fields[i]] = result[i]
