@@ -4,8 +4,14 @@ For initial release:
 
 * Choose favorites (artists and concerts)
 * View concert details
+** display details
+** get songs
+** cache songs
+** display songs
+** edit songnames
 * Downloading actual concerts
 ** Where to store them?
+** update songnames (if edited) for flac and lossy
 * Use home directory for db/config
 * Add actual help
 * Test suites
