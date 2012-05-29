@@ -10,6 +10,7 @@ CONCERT_LIST_ID = 11
 
 # ARIST_BACK_BUTTON_ID = 20 # doesn't exist
 CONCERT_BACK_BUTTON_ID = 21
+DETAILS_BACK_BUTTON_ID = 22
 
 #
 # progress bar for download callback
@@ -83,6 +84,7 @@ class ArtistListCtrl(wx.ListCtrl):
             return ""
 
 class ArtistListPanel(wx.Panel):
+    """Panel for listing the LMA's artists."""
     def __init__(self, parent, id=-1):
         super(ArtistListPanel, self).__init__(parent, id)
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -173,6 +175,8 @@ class ConcertListCtrl(wx.ListCtrl):
         if self.clist != None:
             self.clist.clearNew()
             self.reset()
+    def getConcert(self, row):
+        return self.clist[row]
     def setArtist(self, artist):
         self.clist = lma.ConcertList(artist, WxProgressBar)
         self.reset()
@@ -191,6 +195,7 @@ class ConcertListCtrl(wx.ListCtrl):
             return ""
 
 class ConcertListPanel(wx.Panel):
+    """Panel for listing an artist's concerts."""
     def __init__(self, parent, id=-1):
         super(ConcertListPanel, self).__init__(parent, id)
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -241,6 +246,9 @@ class ConcertListPanel(wx.Panel):
         self._listctrl.download()
     def clearNew(self):
         self._listctrl.clearNew()
+    def getConcert(self, row):
+        return self._listctrl.getConcert(row)
+
 
     # method handlers
     def setConcertMode(self, event):
@@ -251,6 +259,39 @@ class ConcertListPanel(wx.Panel):
     def OnCancelSearch(self, event):
         """Event andler to clear search widget."""
         self._listctrl.clearSearch()
+
+#
+# Concert details panel
+#
+class ConcertDetailsPanel(wx.Panel):
+    """Panel for listing details of a particular concert."""
+    def __init__(self, parent, id=-1):
+        super(ConcertDetailsPanel, self).__init__(parent, id)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        # needs a song list widget
+        self._main = wx.ScrolledWindow(self, -1)
+
+        # label field at top
+        self._label = wx.StaticText(self, -1, "")
+        tmpsizer = wx.BoxSizer()
+        tmpsizer.AddStretchSpacer()
+        tmpsizer.Add(self._label, 0)
+        tmpsizer.AddStretchSpacer()
+        sizer.Add(tmpsizer, 0, wx.ALIGN_CENTER)
+
+        sizer.Add(self._main, 1, wx.EXPAND)
+
+        # make a back button at the bottom
+        button = wx.Button(self, DETAILS_BACK_BUTTON_ID, "Back")
+        tmpsizer = wx.BoxSizer(wx.HORIZONTAL)
+        tmpsizer.Add(button, 0)
+        sizer.Add(tmpsizer, 0)
+
+        self.SetSizer(sizer)
+
+    def setConcert(self, concert):
+        self._label.SetLabel(concert.name)
 #
 # Set up main frame
 #
@@ -261,8 +302,10 @@ class WxLMAFrame(wx.Frame):
 
         self._artist = ArtistListPanel(self, -1)
         self._concert = ConcertListPanel(self, -1)
+        self._details = ConcertDetailsPanel(self, -1)
         self._panel = self._artist
         self._concert.Hide()
+        self._details.Hide()
 
         self._sizer = wx.BoxSizer(wx.HORIZONTAL)
         self._sizer.Add(self._artist, 1, wx.EXPAND)
@@ -321,12 +364,17 @@ class WxLMAFrame(wx.Frame):
         if ID == ARTIST_LIST_ID:
             self._concert.setArtist(self._artist.getArtist(row))
             self.replacePanel(self._concert)
+        elif ID == CONCERT_LIST_ID:
+            self._details.setConcert(self._concert.getConcert(row))
+            self.replacePanel(self._details)
 
     def OnButton(self, event):
         """Method to handle various buttons."""
         ID = event.GetId()
         if ID == CONCERT_BACK_BUTTON_ID:
             self.replacePanel(self._artist)
+        elif ID == DETAILS_BACK_BUTTON_ID:
+            self.replacePanel(self._concert)
 
     ## menu methods
                  
