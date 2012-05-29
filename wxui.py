@@ -263,14 +263,59 @@ class ConcertListPanel(wx.Panel):
 #
 # Concert details panel
 #
+class ConcertDetailsMetaWindow(wx.ScrolledWindow):
+    """Sub-panel for displaying concert meta info (like the desciption)."""
+    def __init__(self, parent, id=-1):
+        super(ConcertDetailsMetaWindow, self).__init__(parent, id)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        # create a Static Box Sizer wrapping everything but the title
+        sbox = wx.StaticBox(self, -1)
+        sbsizer = wx.StaticBoxSizer(sbox, wx.VERTICAL)
+
+        # create inner static box sizers for description, notes, etc.
+        box = wx.StaticBox(self, -1, "Description")
+        self._description = wx.StaticText(self, -1, "")
+
+        tmpsizer = wx.StaticBoxSizer(box, wx.HORIZONTAL)
+        tmpsizer.Add(self._description, 0)
+        sbsizer.Add(tmpsizer, 1)
+
+        box = wx.StaticBox(self, -1, "Notes")
+        self._notes = wx.StaticText(self, -1, "")
+
+        tmpsizer = wx.StaticBoxSizer(box, wx.HORIZONTAL)
+        tmpsizer.Add(self._notes, 0)
+        sbsizer.Add(tmpsizer, 1)
+
+        sizer.Add(sbsizer, 1)
+        self.SetSizer(sizer)
+
+    def setDetails(self, concert):
+        """Add details to fields."""
+        self._concert = concert
+        self._details = lma.ConcertDetails(concert)
+        self._description.SetLabel(self._details.description)
+        self._notes.SetLabel(self._details.notes)
+
+class ConcertSonglistWindow(wx.ListCtrl):
+    """Sub-panel for displaying individual songs."""
+    def __init__(self, parent, id=-1):
+        style = (wx.LC_REPORT | wx.LC_VIRTUAL | wx.LC_SINGLE_SEL
+                 | wx.LC_HRULES | wx.LC_VRULES)
+        super(ConcertSonglistWindow, self).__init__(parent, id, style=style)
+
 class ConcertDetailsPanel(wx.Panel):
     """Panel for listing details of a particular concert."""
     def __init__(self, parent, id=-1):
         super(ConcertDetailsPanel, self).__init__(parent, id)
         sizer = wx.BoxSizer(wx.VERTICAL)
 
-        # needs a song list widget
-        self._main = wx.ScrolledWindow(self, -1)
+        # details widget and songlist widget in splitter window
+        sstyle = wx.SP_LIVE_UPDATE | wx.SP_3D
+        self._splitter = wx.SplitterWindow(self, -1, style=sstyle)
+        self._details = ConcertDetailsMetaWindow(self._splitter, -1)
+        self._slist = ConcertSonglistWindow(self._splitter, -1)
 
         # label field at top
         self._label = wx.StaticText(self, -1, "")
@@ -280,7 +325,10 @@ class ConcertDetailsPanel(wx.Panel):
         tmpsizer.AddStretchSpacer()
         sizer.Add(tmpsizer, 0, wx.ALIGN_CENTER)
 
-        sizer.Add(self._main, 1, wx.EXPAND)
+        # add the splitter (with details and songlist), then split
+        self._splitter.SetMinimumPaneSize(20) # prevents killing one
+        self._splitter.SplitHorizontally(self._details, self._slist, 0)
+        sizer.Add(self._splitter, 1, wx.EXPAND)
 
         # make a back button at the bottom
         button = wx.Button(self, DETAILS_BACK_BUTTON_ID, "Back")
@@ -292,6 +340,12 @@ class ConcertDetailsPanel(wx.Panel):
 
     def setConcert(self, concert):
         self._label.SetLabel(concert.name)
+        self._details.setDetails(concert)
+        # now we should know how big the window is, so we can set the
+        # sash in the middle.
+        size = self._splitter.GetSize()
+        self._splitter.SetSashPosition(size.GetHeight() / 2)
+
 #
 # Set up main frame
 #

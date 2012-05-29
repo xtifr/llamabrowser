@@ -13,7 +13,7 @@ from . import archive
 from . import concert
 
 meta_fields = ["description", "coverage", "notes", "lineage",
-                    "taper", "transferer"]
+               "taper", "transferer"]
 lossless_audio_formats = ["shorten", "flac", "24bit flac", "wave", "aiff",
                           "windows media audio", "apple lossless audio"]
 lossy_audio_formats = [ "ogg vorbis", "vbr mp3", "256kbps mp3", "64kbps mp3"]
@@ -35,8 +35,7 @@ class MetaXMLHandler(xmlhandler.ContentHandler):
         pass
     def startElement(self, name, attrs):
         """Check for elements of interest."""
-        if name in ["description", "coverage", "notes", "lineage",
-                    "taper", "transferer", "has_mp3", "discs"]:
+        if name in meta_fields:
             self._key = name
             self._value = []
     def characters(self, content):
@@ -181,20 +180,6 @@ def organize_filelist(files):
 
     return (songs, metadata, graphics, zips, other)
 
-
-def download_details(concert):
-    """Download all the details for a given concert.
-
-    Keep them cached in ram for now; we only save to the DB on request."""
-
-    lmaid = concert.lmaid
-    data = get_meta_data(lmaid)
-    # make sure we have all fields defined
-    for field in meta_fields:
-        if not data.has_key(field):
-            data[field] = ""
-    data['cid'] = str(concert)
-
 #
 # general classes representing the details.
 #
@@ -233,15 +218,17 @@ class ConcertDetails(object):
         result = c.fetchone()
         if result == None:
             return
-        self._data = {}
-        for i in xrange(len(result)):
-            self._data[meta_fields[i]] = result[i]
-        # note that it doesn't need saving
+        self._data = {x : y  for x,y in zip(meta_fields, result)}
         self._saved = True
 
     def loadFromArchive(self):
         """Get the details from the Archive."""
-        self._data = download_details(self._concert)
+        lmaid = concert.lmaid
+        self._data = get_meta_data(lmaid)
+        # make sure we have all fields defined
+        for field in meta_fields:
+            if not self._data.has_key(field):
+                self._data[field] = ""
 
     def saveToCache(self):
         """Write the details to the cache if necessary."""
@@ -258,3 +245,10 @@ class ConcertDetails(object):
         c.close()
         db.commit()
         self._saved = True
+
+    @property
+    def description(self):
+        return self._data['description']
+    @property
+    def notes(self):
+        return self._data['notes']
