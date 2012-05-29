@@ -41,3 +41,5 @@ from lma.concert import (download_concerts,
                          clear_new_concerts,
                          ConcertList,
                          CVIEW_SELECTORS)
+
+from lma.details import (ConcertDetails)

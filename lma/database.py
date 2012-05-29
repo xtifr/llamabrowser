@@ -143,6 +143,16 @@ CREATE TRIGGER afterconcert AFTER INSERT ON concert
     INSERT INTO newconcert (cid) VALUES (NEW.cid);
   END;
 
+CREATE TABLE details (
+    cid INTEGER UNIQUE REFERENCES concert(cid),
+    coverage    VARCHAR(50),
+    taper       VARCHAR(50),
+    transferer  VARCHAR(50),
+    lineage     TEXT,
+    description TEXT,
+    notes       TEXT
+);
+
 -- song table
 CREATE TABLE song (
     sid        INTEGER UNIQUE PRIMARY KEY,
