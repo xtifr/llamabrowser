@@ -254,3 +254,18 @@ class ConcertFileList(object):
         return self._songs[self._tracks[num]]
     def derivatives(self, num):
         return self._derivatives[self._tracks[num]]
+
+    # support reading like an array
+    # (need to add access to self._other too at some point)
+    def __len__(self):
+        return len(self._songs)
+    def __getitem__(self, i):
+        """Return an item -- either a song or a file."""
+        return self.song(i)
+    def getDerivatives(self, i):
+        return self.derivatives(i)
+    def getFormats(self, i):
+        fmt = [self.song(i)['format']]
+        for d in self.derivatives(i):
+            fmt.append(d['format'])
+        return ",".join(fmt)

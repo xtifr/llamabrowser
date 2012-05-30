@@ -291,7 +291,7 @@ class ConcertDetailsMetaWindow(wx.ScrolledWindow):
         sizer.Add(sbsizer, 1)
         self.SetSizer(sizer)
 
-    def setDetails(self, concert):
+    def setConcert(self, concert):
         """Add details to fields."""
         self._concert = concert
         self._details = lma.ConcertDetails(concert)
@@ -304,6 +304,38 @@ class ConcertSonglistWindow(wx.ListCtrl):
         style = (wx.LC_REPORT | wx.LC_VIRTUAL | wx.LC_SINGLE_SEL
                  | wx.LC_HRULES | wx.LC_VRULES)
         super(ConcertSonglistWindow, self).__init__(parent, id, style=style)
+        self._concert = None
+        self._flist = None
+
+        self.InsertColumn(0, "Track")
+        self.InsertColumn(1, "Title")
+        self.InsertColumn(2, "Formats")
+
+        self.SetColumnWidth(0, 50)
+        self.SetColumnWidth(1, 300)
+        self.SetColumnWidth(2, 200)
+
+    def reset(self):
+        if self._flist != None:
+            self.SetItemCount(len(self._flist))
+
+    def setConcert(self, concert):
+        """Add songs to fields."""
+        self._concert = concert
+        self._flist = lma.ConcertFileList(concert)
+        self.reset()
+
+    # override widget methods
+    def OnGetItemText(self, row, column):
+        if column == 0:
+            return str(row+1)
+        if column == 1:
+            song = self._flist[row]
+            if song.has_key('title'):
+                return song['title']
+            return song['name']
+        if column == 2:
+            return self._flist.getFormats(row)
 
 class ConcertDetailsPanel(wx.Panel):
     """Panel for listing details of a particular concert."""
@@ -327,6 +359,7 @@ class ConcertDetailsPanel(wx.Panel):
 
         # add the splitter (with details and songlist), then split
         self._splitter.SetMinimumPaneSize(20) # prevents killing one
+        self._splitter.SetSashGravity(0.5)
         self._splitter.SplitHorizontally(self._details, self._slist, 0)
         sizer.Add(self._splitter, 1, wx.EXPAND)
 
@@ -340,7 +373,8 @@ class ConcertDetailsPanel(wx.Panel):
 
     def setConcert(self, concert):
         self._label.SetLabel(concert.name)
-        self._details.setDetails(concert)
+        self._details.setConcert(concert)
+        self._slist.setConcert(concert)
         # now we should know how big the window is, so we can set the
         # sash in the middle.
         size = self._splitter.GetSize()
