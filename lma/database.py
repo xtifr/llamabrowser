@@ -60,6 +60,20 @@ class DbRecord(object):
         if val == "": return False
         return True
 
+    def setDbBool(self, table, col, flag):
+        """Set the boolean by adding or deleting from a table."""
+        db = Db()
+        c = db.cursor()
+        # since this is a bool, we either add or delete
+        if flag:
+            c.execute("INSERT OR REPLACE INTO %s (%s) VALUES (?)" %
+                      (table, col), (self._value,))
+        else:
+            c.execute("DELETE FROM %s WHERE %s = ?" %
+                      (table, col), (self._value,))
+        c.close()
+        db.commit()
+
     def __str__(self):
         return str(self._value)
     def __int__(self):

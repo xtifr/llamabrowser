@@ -77,13 +77,16 @@ class Artist(database.DbRecord):
         super(Artist, self).__init__(artist)
     @property
     def name(self):
-        return super(Artist,self).getDbInfo("artist", "aname", "aid")
+        return super(Artist, self).getDbInfo("artist", "aname", "aid")
     @property
     def browsedate(self):
-        return super(Artist,self).getDbInfo("lastbrowse", "browsedate", "aid")
+        return super(Artist, self).getDbInfo("lastbrowse", "browsedate", "aid")
     @property
     def favorite(self):
-        return super(Artist,self).getDbBool("favorite", "artistid")
+        return super(Artist, self).getDbBool("favorite", "artistid")
+    @favorite.setter
+    def favorite(self, flag):
+        super(Artist, self).setDbBool("favorite", "artistid", flag)
 
 class ArtistList(object):
     """Generic representation of artist list."""

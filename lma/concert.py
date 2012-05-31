@@ -88,16 +88,20 @@ class Concert(database.DbRecord):
         super(Concert, self).__init__(concert)
     @property
     def name(self):
-        return super(Concert,self).getDbInfo("concert", "ctitle", "cid")
+        return super(Concert, self).getDbInfo("concert", "ctitle", "cid")
     @property
     def date(self):
-        return super(Concert,self).getDbInfo("concert", "cdate", "cid")
+        return super(Concert, self).getDbInfo("concert", "cdate", "cid")
     @property
     def favorite(self):
-        return super(Concert,self).getDbBool("favconcert", "concertid")
+        """Favorite flag (read/write)."""
+        return super(Concert, self).getDbBool("favconcert", "concertid")
+    @favorite.setter
+    def favorite(self, flag):
+        super(Concert, self).setDbBool("favconcert", "concertid", flag)
     @property
     def lmaid(self):
-        return super(Concert,self).getDbInfo("concert", "lmaid", "cid")
+        return super(Concert, self).getDbInfo("concert", "lmaid", "cid")
 
 class ConcertList(object):
     """Generic representation of a concert list."""
