@@ -5,7 +5,7 @@ import urllib2
 
 ARCHIVE_URL = "http://www.archive.org"
 
-def _full_path(path, search):
+def full_path(path, search=False):
     if search:
         return "%s/advancedsearch.php?%s" % (ARCHIVE_URL, path)
     return "%s/download/%s" % (ARCHIVE_URL, path)
@@ -18,4 +18,4 @@ def archive_open(path, search=False):
     True, this sends a query to the Archive's search engine,
     otherwise, it opens a downloadable file."""
 
-    return urllib2.urlopen(_full_path(path, search))
+    return urllib2.urlopen(full_path(path, search))

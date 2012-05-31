@@ -12,13 +12,36 @@ from . import database
 from . import archive
 from . import concert
 
+# define audio formats:
+
+# lossless
+FMT_FLAC = "flac"
+FMT_FLAC24 = "24bit flac"
+FMT_SHN = "shorten"
+FMT_WAV = "wave"
+FMT_AIFF = "aiff"
+FMT_WMA = "windows media audio"
+FMT_ALA = "apple lossless audio"
+
+lossless_audio_formats = [FMT_FLAC, FMT_FLAC24, FMT_SHN, FMT_WAV, FMT_AIFF,
+                          FMT_WMA, FMT_ALA]
+
+# lossy (derivative) formats
+FMT_OGG = "ogg vorbis"
+FMT_MP3 = "vbr mpt"
+FMT_64MP3 = "64kbps mp3"
+
+lossy_audio_formats = [FMT_OGG, FMT_MP3, FMT_64MP3 ]
+
+# other assorted formats:
+FMT_JPG = "jpeg"
+FMT_PNG = "png"
+FMT_GIF = "gif"
+graphics_formats = [FMT_JPG, FMT_PNG, FMT_GIF]
+
+# key fields in archive XML files
 meta_fields = ["description", "coverage", "notes", "lineage",
                "taper", "transferer"]
-lossless_audio_formats = ["shorten", "flac", "24bit flac", "wave", "aiff",
-                          "windows media audio", "apple lossless audio"]
-lossy_audio_formats = [ "ogg vorbis", "vbr mp3", "256kbps mp3", "64kbps mp3"]
-graphics_formats = ["jpeg", "png", "gif"]
-
 
 #
 # metadata SAX handler
@@ -250,6 +273,9 @@ class ConcertFileList(object):
         for rec in self.derivatives(0):
             self.types.append(rec['format'])
 
+        # cache formats, as gathered from the first track
+        self._formats = self.getFormats(0)
+
     def song(self, num):
         return self._songs[self._tracks[num]]
     def derivatives(self, num):
@@ -268,4 +294,15 @@ class ConcertFileList(object):
         fmt = [self.song(i)['format']]
         for d in self.derivatives(i):
             fmt.append(d['format'])
-        return ",".join(fmt)
+        return fmt
+    def getFormatFile(self, i, format):
+        """Return the file of the specified type, or None."""
+        if format.lower() == self.formats[0]:
+            return self.song(i)
+        for d in self.derivatives(i):
+            if d['format'].lower() == format.lower():
+                return d
+        return None
+    def getSongRemotePath(self, i, format):
+        return "%s/%s" % (self._concert.lmaid,
+                          self.getFormatFile(i, format)['name'])

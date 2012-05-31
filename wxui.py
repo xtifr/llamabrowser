@@ -7,6 +7,7 @@ import wx
 #
 ARTIST_LIST_ID = 10
 CONCERT_LIST_ID = 11
+DETAILS_LIST_ID = 12
 
 # ARIST_BACK_BUTTON_ID = 20 # doesn't exist
 CONCERT_BACK_BUTTON_ID = 21
@@ -335,7 +336,7 @@ class ConcertSonglistWindow(wx.ListCtrl):
                 return song['title']
             return song['name']
         if column == 2:
-            return self._flist.getFormats(row)
+            return ",".join(self._flist.getFormats(row))
 
 class ConcertDetailsPanel(wx.Panel):
     """Panel for listing details of a particular concert."""
@@ -347,7 +348,7 @@ class ConcertDetailsPanel(wx.Panel):
         sstyle = wx.SP_LIVE_UPDATE | wx.SP_3D
         self._splitter = wx.SplitterWindow(self, -1, style=sstyle)
         self._details = ConcertDetailsMetaWindow(self._splitter, -1)
-        self._slist = ConcertSonglistWindow(self._splitter, -1)
+        self._slist = ConcertSonglistWindow(self._splitter, DETAILS_LIST_ID)
 
         # label field at top
         self._label = wx.StaticText(self, -1, "")
