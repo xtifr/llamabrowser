@@ -15,7 +15,7 @@ are access through the ConcertFileList class."""
 
 __version__ = '0.1'
 
-from lma.archive import (archive_open)
+from lma.archive import (archive_open, full_path)
 
 from lma.query import (Query, ProgressIter, IDENTIFIER, TITLE, COLLECTION,
                        MEDIATYPE, PUBDATE, DATE, YEAR, FORMAT,
