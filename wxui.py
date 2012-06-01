@@ -9,7 +9,7 @@ ARTIST_LIST_ID = 10
 CONCERT_LIST_ID = 11
 DETAILS_LIST_ID = 12
 
-# ARIST_BACK_BUTTON_ID = 20 # doesn't exist
+# ARTIST_BACK_BUTTON_ID = 20 # doesn't exist
 CONCERT_BACK_BUTTON_ID = 21
 DETAILS_BACK_BUTTON_ID = 22
 
@@ -145,12 +145,12 @@ class ConcertListCtrl(wx.ListCtrl):
         self._artist = None
         self.clist = None
 
-        self.InsertColumn(0, "Concert Venue")
-        self.InsertColumn(1, "Date")
+        self.InsertColumn(0, "Date")
+        self.InsertColumn(1, "Concert Venue")
         self.InsertColumn(2, "Favorite")
 
-        self.SetColumnWidth(0, 350)
-        self.SetColumnWidth(1, 100)
+        self.SetColumnWidth(0, 100)
+        self.SetColumnWidth(1, 350)
         self.SetColumnWidth(2, 75)
 
     def reset(self):
@@ -201,9 +201,9 @@ class ConcertListCtrl(wx.ListCtrl):
     # override widget methods
     def OnGetItemText(self, row, column):
         if column == 0:
-            return self.clist[row].name
-        elif column == 1:
             return self.clist[row].date
+        elif column == 1:
+            return self.clist[row].name
         elif column == 2:
             if self.clist[row].favorite:
                 return "Y"
@@ -544,6 +544,7 @@ class LMAApp(wx.App):
         return True
 
 def main():
+    lma.Config("~/.LMABrowser")
     app = LMAApp()
     app.MainLoop()
 

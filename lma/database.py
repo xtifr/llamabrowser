@@ -5,7 +5,7 @@ Assuming sqlite3 for now.  May allow other DBs for shared access in
 future versions."""
 import os
 import sqlite3
-
+from . import config
 #
 # TODO: expand this to use the appropriate config directory & stuff
 _db_name = "lma.db"
@@ -14,14 +14,10 @@ class Db(object):
     """A handle for the singleton DB access."""
     _db = None
     _name = None
-    def __init__(self, fname=_db_name):
+    def __init__(self):
         """make sure db is open."""
-        # if we get a different name, we have to open a new db
-        if Db._name != fname:
-            self.close()
-            Db._Name = fname
-        # now see if we actually need to open anything
         if Db._db == None:
+            fname = config.Config().dbpath()
             # if there's no db there, we'll also have to populate it.
             found = os.path.exists(fname)
             Db._db = sqlite3.connect(fname)

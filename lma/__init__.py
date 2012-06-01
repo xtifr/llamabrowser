@@ -36,3 +36,5 @@ from lma.concert import (download_concerts,
                          CVIEW_SELECTORS)
 
 from lma.details import (ConcertDetails, ConcertFileList)
+
+from lma.config import (Config)
