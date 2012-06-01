@@ -2,23 +2,26 @@ Some of these will obviously end up generating subtasks
 
 For initial release:
 
-* Choose favorites (artists and concerts)
 * View concert details
-** display details
-** get songs
 ** cache songs
-** display songs
 ** edit songnames
+** play songs
+** make display look better
 * Downloading actual concerts
-** Where to store them?
+** where to store them?
 ** update songnames (if edited) for flac and lossy
 * Use home directory for db/config
 * Add actual help
+* Better error handling
+** when internet is off or download fails
+** bad data from LMA
 * Test suites
 * Figure out and document licensing
 
 Little tasks:
-* Reset the mode selection widget when showing the concert frame.
+* Reset the search & selection widgets when showing the concert frame.
+* Move to the top of the list when showing the concert and song frames.
+* Figure out why Dave Malone, 2011-01-13 won't load. (Bad xml?)
 
 Longer term
 
@@ -35,6 +38,7 @@ Longer term
 ** browsing
 ** posting
 * Hide artists/concerts (just not interested)
+* Discard concert lists for artists
 * Alternative sorting options for display.
 * Broad cross-artist Archive search for songs, etc.
   (Basically, formulate custom searches and handle the results specially.)

@@ -179,10 +179,24 @@ class ConcertListCtrl(wx.ListCtrl):
     def getConcert(self, row):
         return self.clist[row]
     def setArtist(self, artist):
+        self._artist = artist
         self.clist = lma.ConcertList(artist, WxProgressBar)
         self.reset()
     def getArtistName(self):
         return self.clist.artistName
+    def toggleFavorite(self):
+        self._artist.favorite = not self._artist.favorite
+        if self._artist.favorite:
+            msg = "%s is now marked as a favorite" % self._artist.name
+            cap = "Favorite set"
+            style = wx.ICON_INFORMATION | wx.OK
+        else:
+            msg = "%s is no longer marked as a favorite" % self._artist.name
+            cap = "Favorite cleared"
+            style = wx.ICON_EXCLAMATION | wx.OK
+        popup = wx.MessageDialog(self, msg, caption=cap, style=style)
+        popup.ShowModal()
+        popup.Destroy()
 
     # override widget methods
     def OnGetItemText(self, row, column):
@@ -249,7 +263,8 @@ class ConcertListPanel(wx.Panel):
         self._listctrl.clearNew()
     def getConcert(self, row):
         return self._listctrl.getConcert(row)
-
+    def toggleFavorite(self):
+        self._listctrl.toggleFavorite()
 
     # method handlers
     def setConcertMode(self, event):
@@ -337,6 +352,19 @@ class ConcertSonglistWindow(wx.ListCtrl):
             return song['name']
         if column == 2:
             return ",".join(self._flist.getFormats(row))
+    def toggleFavorite(self):
+        self._concert.favorite = not self._concert.favorite
+        if self._concert.favorite:
+            msg = "%s is now marked as a favorite" % self._concert.name
+            cap = "Favorite set"
+            style = wx.ICON_INFORMATION | wx.OK
+        else:
+            msg = "%s is no longer marked as a favorite" % self._concert.name
+            cap = "Favorite cleared"
+            style = wx.ICON_EXCLAMATION | wx.OK
+        popup = wx.MessageDialog(self, msg, caption=cap, style=style)
+        popup.ShowModal()
+        popup.Destroy()
 
 class ConcertDetailsPanel(wx.Panel):
     """Panel for listing details of a particular concert."""
@@ -381,6 +409,8 @@ class ConcertDetailsPanel(wx.Panel):
         size = self._splitter.GetSize()
         self._splitter.SetSashPosition(size.GetHeight() / 2)
 
+    def toggleFavorite(self):
+        self._slist.toggleFavorite()
 #
 # Set up main frame
 #
@@ -412,25 +442,28 @@ class WxLMAFrame(wx.Frame):
         menubar = wx.MenuBar()
 
         # file menu
-        fileMenu = wx.Menu()
-        fileMenu.Append(101, "&Fetch Records", "Fetch/update from LMA")
-        fileMenu.Append(102, "&Clear New List", "Mark all artists seen.")
-        fileMenu.Append(199, "&Quit", "Exit program")
-        menubar.Append(fileMenu, "&File")
+        self._fileMenu = wx.Menu()
+        self._fileMenu.Append(101, "&Fetch Records", "Fetch/update from LMA")
+        self._fileMenu.Append(102, "&Clear New List", "Mark all as seen.")
+        self._fileMenu.Append(103, "&Mark Favorite", "Mark this as a favorite.")
+        self._fileMenu.Enable(103, False)
+        self._fileMenu.Append(wx.ID_ABOUT, "&Quit", "Exit program")
+        menubar.Append(self._fileMenu, "&File")
 
         # help menu
-        helpMenu = wx.Menu()
-        helpMenu.Append(201, "&About", "About LMABrowser")
-        menubar.Append(helpMenu, "&Help")
+        self._helpMenu = wx.Menu()
+        self._helpMenu.Append(wx.ID_EXIT, "&About", "About LMABrowser")
+        menubar.Append(self._helpMenu, "&Help")
 
         self.SetMenuBar(menubar)
 
         # bind menus
         self.Bind(wx.EVT_MENU, self.menuFetch, id=101)
         self.Bind(wx.EVT_MENU, self.menuClearNew, id=102)
-        self.Bind(wx.EVT_MENU, self.menuQuit, id=199)
+        self.Bind(wx.EVT_MENU, self.menuFavorite, id=103)
 
-        self.Bind(wx.EVT_MENU, self.menuAbout, id=201)
+        self.Bind(wx.EVT_MENU, self.menuQuit, id=wx.ID_EXIT)
+        self.Bind(wx.EVT_MENU, self.menuAbout, id=wx.ID_ABOUT)
 
     #
     def replacePanel(self, new):
@@ -453,17 +486,21 @@ class WxLMAFrame(wx.Frame):
         if ID == ARTIST_LIST_ID:
             self._concert.setArtist(self._artist.getArtist(row))
             self.replacePanel(self._concert)
+            self._fileMenu.Enable(103, True) # allow toggling favorites
         elif ID == CONCERT_LIST_ID:
             self._details.setConcert(self._concert.getConcert(row))
             self.replacePanel(self._details)
+            self._fileMenu.Enable(102, False) # no new list to clear
 
     def OnButton(self, event):
         """Method to handle various buttons."""
         ID = event.GetId()
         if ID == CONCERT_BACK_BUTTON_ID:
             self.replacePanel(self._artist)
+            self._fileMenu.Enable(103, False) # no toggling favorites
         elif ID == DETAILS_BACK_BUTTON_ID:
             self.replacePanel(self._concert)
+            self._fileMenu.Enable(102, True) # allow clearing new-list
 
     ## menu methods
                  
@@ -471,6 +508,8 @@ class WxLMAFrame(wx.Frame):
         self._panel.download()
     def menuClearNew(self, event):
         self._panel.clearNew()
+    def menuFavorite(self, event):
+        self._panel.toggleFavorite()
     def menuQuit(self, event):
         self.Close()
 
