@@ -297,7 +297,7 @@ class ConcertFileList(object):
         return fmt
     def getFormatFile(self, i, format):
         """Return the file of the specified type, or None."""
-        if format.lower() == self.formats[0]:
+        if format.lower() == self._formats[0]:
             return self.song(i)
         for d in self.derivatives(i):
             if d['format'].lower() == format.lower():
