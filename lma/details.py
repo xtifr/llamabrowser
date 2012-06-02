@@ -257,12 +257,12 @@ class ConcertDetails(object):
 class ConcertFileList(object):
     """Represents a list of songs for a given show."""
     def __init__(self, concert):
-        self._concert = concert
+        self.concert = concert
         self.loadFromArchive()
 
     def loadFromArchive(self):
         """Get Files/Songlist from Archive."""
-        data = get_filelist_data(self._concert.lmaid)
+        data = get_filelist_data(self.concert.lmaid)
         (tracks, songs, derivatives, others) = organize_filelist(data)
         self._tracks = tracks
         self._songs = songs
@@ -288,6 +288,8 @@ class ConcertFileList(object):
     def __getitem__(self, i):
         """Return an item -- either a song or a file."""
         return self.song(i)
+    def hasLossy(self):
+        return len(self.derivatives) > 0
     def getDerivatives(self, i):
         return self.derivatives(i)
     def getFormats(self, i):
@@ -295,14 +297,23 @@ class ConcertFileList(object):
         for d in self.derivatives(i):
             fmt.append(d['format'])
         return fmt
+    def LosslessFormat(self):
+        """Return the lossless format for this concert"""
+        return self._formats[0]
     def getFormatFile(self, i, format):
         """Return the file of the specified type, or None."""
-        if format.lower() == self._formats[0]:
+        if format.lower() == self.LosslessFormat().lower():
             return self.song(i)
         for d in self.derivatives(i):
             if d['format'].lower() == format.lower():
                 return d
         return None
+    def getFormatTitle(self, i, format):
+        """Return the song title, or base filename if not defined."""
+        rec = self.getFormatFile(i, format)
+        if 'title' in rec:
+            return rec['title']
+        return rec['name']
     def getSongRemotePath(self, i, format):
-        return "%s/%s" % (self._concert.lmaid,
+        return "%s/%s" % (self.concert.lmaid,
                           self.getFormatFile(i, format)['name'])

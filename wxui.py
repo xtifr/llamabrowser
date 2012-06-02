@@ -35,6 +35,67 @@ class WxProgressBar(object):
         self._dialog.Destroy()
 
 #
+# Download menu (for songs)
+#
+class DownloadPopup(wx.Dialog):
+    """Download songs (and other files)"""
+    def __init__(self, parent, id, songlist):
+        title = _(u"Download From %s") % songlist.concert.name
+        super(DownloadPopup, self).__init__(parent, id, title)
+        self._path = lma.Config().lossless_path()
+        self._format = songlist.LosslessFormat()
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        # title line
+        tmpsizer = wx.BoxSizer(wx.HORIZONTAL)
+        label = wx.StaticText(self, -1, songlist.concert.name)
+        tmpsizer.Add(label, 0, wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, 5)
+        sizer.Add(tmpsizer, 0)
+
+        # format selection line
+        tmpsizer = wx.BoxSizer(wx.HORIZONTAL)
+        label = wx.StaticText(self, -1, _(u"Format: "))
+        tmpsizer.Add(label, 0)
+        self._choice = wx.Choice(self, -1, choices=songlist.getFormats(0))
+        self.Bind(wx.EVT_CHOICE, self.OnFormat, self._choice)
+        tmpsizer.Add(self._choice, 0, wx.ALIGN_CENTER)
+        sizer.Add(tmpsizer, 0)
+
+        # directory selection line
+        tmpsizer = wx.BoxSizer(wx.HORIZONTAL)
+        label = wx.StaticText(self, -1, _(u"Download To: "))
+        tmpsizer.Add(label, 0)
+        self._dir = wx.DirPickerCtrl(self, -1)
+        self._dir.SetPath(self._path)
+        self.Bind(wx.EVT_DIRPICKER_CHANGED, self.OnDestPick, self._dir)
+        tmpsizer.Add(self._dir, 0)
+        sizer.Add(tmpsizer, 0)
+
+        # now the main songlist
+        names = []
+        for i in range(len(songlist)):
+            names.append(songlist.getFormatTitle(i, self._format))
+        self._list = wx.CheckListBox(self, -1, choices=names)
+        # check them all by default
+        for i in range(len(songlist)):
+            self._list.Check(i, True)
+        sizer.Add(self._list, 1)
+
+        bsizer = self.CreateButtonSizer(wx.OK|wx.CANCEL)
+        if bsizer != None:
+            sizer.Add(bsizer, 0, wx.ALIGN_RIGHT)
+        self.SetSizer(sizer)
+
+    # event bindings
+    def OnFormat(self, event):
+        """Select the file format"""
+        self._format = event.GetString()
+    def OnDestPick(self, event):
+        """Select Destination Directory"""
+        self._path = event.GetString()
+
+#
 # artist listings
 #
 
@@ -368,6 +429,11 @@ class ConcertSongListWindow(wx.ListCtrl):
         popup = wx.MessageDialog(self, msg, caption=cap, style=style)
         popup.ShowModal()
         popup.Destroy()
+    def download(self):
+        frame = DownloadPopup(self, -1, self._flist)
+        frame.ShowModal()
+        result = frame.GetReturnCode()
+        frame.Destroy()
 
 class ConcertDetailsPanel(wx.Panel):
     """Panel for listing details of a particular concert."""
@@ -408,13 +474,16 @@ class ConcertDetailsPanel(wx.Panel):
 
     def toggleFavorite(self):
         self._slist.toggleFavorite()
+
+    def download(self):
+        """Downloader for concert files."""
+        self._slist.download()
 #
 # Set up main frame
 #
 class WxLMAFrame(wx.Frame):
-    def __init__(self, parent, ID, title, pos=wx.DefaultPosition,
-                 size=(600, 400), style=wx.DEFAULT_FRAME_STYLE):
-        super(WxLMAFrame, self).__init__(parent, ID, title, pos, size, style)
+    def __init__(self, parent, ID, title, size=(600, 400)):
+        super(WxLMAFrame, self).__init__(parent, ID, title, size=size)
 
         self._artist = ArtistListPanel(self, -1)
         self._concert = ConcertListPanel(self, -1)

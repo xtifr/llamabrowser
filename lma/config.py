@@ -44,9 +44,9 @@ class Config(object):
     def dbpath(self):
         """Returns the path to the database file."""
         return self.path("lma.db")
-    def lossless_path(self, artist, concert):
+    def lossless_path(self):
         """Return the path where flac/shn files should go."""
-        return os.path.join("~/pub/etree/new", concert.lmaid)
-    def lossy_path(self, artist, concert):
+        return os.path.expanduser("~/pub/etree/new")
+    def lossy_path(self):
         """Return the path where lossy files should go."""
-        return os.path.join("~/Music", artist.name, concert.lmaid)
+        return os.path.expanduser("~/Music")

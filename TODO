@@ -6,17 +6,19 @@ For initial release:
 ** cache songs
 ** edit songnames
 ** play songs
-** make display look better
+** make display look better (notebook is better, but still needs scrolling)
 * Downloading actual concerts
 ** where to store them?
 ** update songnames (if edited) for flac and lossy
 ** add missing metadata to flac
-* Use home directory for db/config
+* Use home directory for config
+** UI for configuring
 * Add actual help
 * Better error handling
 ** when internet is off or download fails
 ** bad data from LMA
 * Test suites
+* proper i18n support
 * Figure out and document licensing
 
 Little tasks:
@@ -26,16 +28,17 @@ Little tasks:
 
 Longer term
 
-* Autoconvert shn to flac option
-* Remove redundant artist name from concert name
-* (Option): ignore leading "The" and "A" when sorting artists.
-* Allow user to define arbitrary tags (similar to the favorites flag)
-  and attach them to artists and shows, and then use them for selection.
-  (Should be combinable with other selection methods.)
 * Allow interrupting and restarting downloads, by making use of the
   pubdate field we're already grabbing from the archive.
 * Limit viewing artists by starting letter
 * Limit viewing concerts by year
+* Autoconvert shn to flac option
+** Add metadata too
+* Remove redundant artist name from concert name in concert list
+* (Option): ignore leading "The" and "A" when sorting artists.
+* Allow user to define arbitrary tags (similar to the favorites flag)
+  and attach them to artists and shows, and then use them for selection.
+  (Should be combinable with other selection methods.)
 * reviews / stars
 ** browsing
 ** posting
