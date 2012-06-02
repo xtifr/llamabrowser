@@ -37,40 +37,46 @@ class WxProgressBar(object):
 #
 # Download menu (for songs)
 #
-class DownloadPopup(wx.Dialog):
+class DownloadDialog(wx.Dialog):
     """Download songs (and other files)"""
     def __init__(self, parent, id, songlist):
-        title = _(u"Download From %s") % songlist.concert.name
-        super(DownloadPopup, self).__init__(parent, id, title)
+        title = _(u"Download %s") % songlist.concert.name
+        super(DownloadDialog, self).__init__(parent, id, title)
         self._path = lma.Config().lossless_path()
         self._format = songlist.LosslessFormat()
+        self._subdir = True # default should be configurable!
 
         sizer = wx.BoxSizer(wx.VERTICAL)
 
-        # title line
-        tmpsizer = wx.BoxSizer(wx.HORIZONTAL)
-        label = wx.StaticText(self, -1, songlist.concert.name)
-        tmpsizer.Add(label, 0, wx.ALIGN_CENTER|wx.TOP|wx.BOTTOM, 5)
-        sizer.Add(tmpsizer, 0)
-
         # format selection line
         tmpsizer = wx.BoxSizer(wx.HORIZONTAL)
+
         label = wx.StaticText(self, -1, _(u"Format: "))
-        tmpsizer.Add(label, 0)
+        tmpsizer.Add(label, 0, wx.ALIGN_CENTER)
         self._choice = wx.Choice(self, -1, choices=songlist.getFormats(0))
         self.Bind(wx.EVT_CHOICE, self.OnFormat, self._choice)
         tmpsizer.Add(self._choice, 0, wx.ALIGN_CENTER)
-        sizer.Add(tmpsizer, 0)
+
+        sizer.Add(tmpsizer, 0, wx.LEFT, 5)
 
         # directory selection line
         tmpsizer = wx.BoxSizer(wx.HORIZONTAL)
-        label = wx.StaticText(self, -1, _(u"Download To: "))
-        tmpsizer.Add(label, 0)
+
+        label = wx.StaticText(self, -1, _(u"Save in: "))
+        tmpsizer.Add(label, 0, wx.ALIGN_CENTER)
         self._dir = wx.DirPickerCtrl(self, -1)
         self._dir.SetPath(self._path)
         self.Bind(wx.EVT_DIRPICKER_CHANGED, self.OnDestPick, self._dir)
-        tmpsizer.Add(self._dir, 0)
-        sizer.Add(tmpsizer, 0)
+        tmpsizer.Add(self._dir, 0, wx.ALIGN_CENTER)
+
+        sizer.Add(tmpsizer, 0, wx.LEFT, 5)
+
+        # checkbox to create Artist subdirectory
+        check = wx.CheckBox(self, -1, label=_(u"Use Artist Subdirectory?"))
+        check.SetValue(self._subdir)
+        self.Bind(wx.EVT_CHECKBOX, self.OnSubdir, check)
+
+        sizer.Add(check, 0, wx.LEFT, 5)
 
         # now the main songlist
         names = []
@@ -80,11 +86,13 @@ class DownloadPopup(wx.Dialog):
         # check them all by default
         for i in range(len(songlist)):
             self._list.Check(i, True)
-        sizer.Add(self._list, 1)
+
+        sizer.Add(self._list, 1, wx.ALL, 5)
 
         bsizer = self.CreateButtonSizer(wx.OK|wx.CANCEL)
         if bsizer != None:
             sizer.Add(bsizer, 0, wx.ALIGN_RIGHT)
+
         self.SetSizer(sizer)
 
     # event bindings
@@ -94,6 +102,8 @@ class DownloadPopup(wx.Dialog):
     def OnDestPick(self, event):
         """Select Destination Directory"""
         self._path = event.GetString()
+    def OnSubdir(self, event):
+        self._subdir = event.IsChecked()
 
 #
 # artist listings
@@ -430,9 +440,10 @@ class ConcertSongListWindow(wx.ListCtrl):
         popup.ShowModal()
         popup.Destroy()
     def download(self):
-        frame = DownloadPopup(self, -1, self._flist)
-        frame.ShowModal()
-        result = frame.GetReturnCode()
+        frame = DownloadDialog(self, -1, self._flist)
+        result = frame.ShowModal()
+        if result == wx.ID_OK:
+            pass # insert download code here!
         frame.Destroy()
 
 class ConcertDetailsPanel(wx.Panel):
@@ -509,7 +520,7 @@ class WxLMAFrame(wx.Frame):
 
         # file menu
         self._fileMenu = wx.Menu()
-        self._fileMenu.Append(101, _(u"&Fetch Records"),
+        self._fileMenu.Append(101, _(u"&Download"),
                               _(u"Fetch/update from LMA"))
         self._fileMenu.Append(102, _(u"&Clear New List"),
                               _(u"Mark all as seen."))
@@ -613,7 +624,7 @@ class LMAApp(wx.App):
         return True
 
 def main():
-    lma.Config("~/.LMABrowser")
+    lma.Config("~/.LMABrowser", create=True)
     app = LMAApp()
     app.MainLoop()
 

@@ -26,7 +26,7 @@ import sys, os
 class Config(object):
     """Create a configuration object."""
     _dir = None
-    def __init__(self, datadir=None):
+    def __init__(self, datadir=None, create=False):
         """Return the singleton.  Must be initialized with a path.
         
         if no path was provided on the first call to __init__,
@@ -37,7 +37,11 @@ class Config(object):
             raise ValueError("class 'lma.Config' has no data directory.")
         Config._dir = os.path.abspath(os.path.expanduser(datadir))
         if not os.path.isdir(Config._dir):
-            os.makedirs(Config._dir)
+            if create:
+                os.makedirs(Config._dir)
+            else:
+                Config._dir = None
+                raise IOError("No such directory: " + datadir)
     def path(self, f):
         """Returns the path to the given file in the config dir"""
         return os.path.join(Config._dir, f)
