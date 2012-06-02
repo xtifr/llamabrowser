@@ -314,12 +314,12 @@ class ConcertDetailsMetaWindow(wx.ScrolledWindow):
         self._description.SetLabel(self._details.description)
         self._notes.SetLabel(self._details.notes)
 
-class ConcertSonglistWindow(wx.ListCtrl):
+class ConcertSongListWindow(wx.ListCtrl):
     """Sub-panel for displaying individual songs."""
     def __init__(self, parent, id=-1):
         style = (wx.LC_REPORT | wx.LC_VIRTUAL | wx.LC_SINGLE_SEL
                  | wx.LC_HRULES | wx.LC_VRULES)
-        super(ConcertSonglistWindow, self).__init__(parent, id, style=style)
+        super(ConcertSongListWindow, self).__init__(parent, id, style=style)
         self._concert = None
         self._flist = None
 
@@ -372,11 +372,12 @@ class ConcertDetailsPanel(wx.Panel):
         super(ConcertDetailsPanel, self).__init__(parent, id)
         sizer = wx.BoxSizer(wx.VERTICAL)
 
-        # details widget and songlist widget in splitter window
-        sstyle = wx.SP_LIVE_UPDATE | wx.SP_3D
-        self._splitter = wx.SplitterWindow(self, -1, style=sstyle)
-        self._details = ConcertDetailsMetaWindow(self._splitter, -1)
-        self._slist = ConcertSonglistWindow(self._splitter, DETAILS_LIST_ID)
+        # details widget and songlist widget in notebook frame
+        self._pad = wx.Notebook(self, -1, style=wx.NB_TOP)
+        self._details = ConcertDetailsMetaWindow(self._pad, -1)
+        self._slist = ConcertSongListWindow(self._pad, DETAILS_LIST_ID)
+        self._pad.AddPage(self._details, "Details", True)
+        self._pad.AddPage(self._slist, "Songs", False)
 
         # label field at top
         self._label = wx.StaticText(self, -1, "")
@@ -386,11 +387,8 @@ class ConcertDetailsPanel(wx.Panel):
         tmpsizer.AddStretchSpacer()
         sizer.Add(tmpsizer, 0, wx.ALIGN_CENTER)
 
-        # add the splitter (with details and songlist), then split
-        self._splitter.SetMinimumPaneSize(20) # prevents killing one
-        self._splitter.SetSashGravity(0.5)
-        self._splitter.SplitHorizontally(self._details, self._slist, 0)
-        sizer.Add(self._splitter, 1, wx.EXPAND)
+        # Add the notebook (with details and songlist)
+        sizer.Add(self._pad, 1, wx.EXPAND)
 
         # make a back button at the bottom
         button = wx.Button(self, DETAILS_BACK_BUTTON_ID, "Back")
@@ -404,10 +402,6 @@ class ConcertDetailsPanel(wx.Panel):
         self._label.SetLabel(concert.name)
         self._details.setConcert(concert)
         self._slist.setConcert(concert)
-        # now we should know how big the window is, so we can set the
-        # sash in the middle.
-        size = self._splitter.GetSize()
-        self._splitter.SetSashPosition(size.GetHeight() / 2)
 
     def toggleFavorite(self):
         self._slist.toggleFavorite()
