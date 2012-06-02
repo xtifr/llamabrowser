@@ -5,8 +5,7 @@ from . import query
 from . import progress
 
 # temporary def used till we set up gettext
-def _(text):
-    return text
+_ = str
 
 #
 # Concert database access

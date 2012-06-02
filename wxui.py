@@ -3,8 +3,7 @@ import lma
 import wx
 
 # temporary def used until we set up gettext
-def _(text):
-    return text
+_ = str
 
 #
 # some global ids
@@ -47,9 +46,9 @@ class ArtistListCtrl(wx.ListCtrl):
         super(ArtistListCtrl, self).__init__(parent, id, style=style)
         self.alist = lma.ArtistList(WxProgressBar)
 
-        self.InsertColumn(0, _("Artist Name"))
-        self.InsertColumn(1, _("Last Browsed"))
-        self.InsertColumn(2, _("Favorite"))
+        self.InsertColumn(0, _(u"Artist Name"))
+        self.InsertColumn(1, _(u"Last Browsed"))
+        self.InsertColumn(2, _(u"Favorite"))
 
         self.SetColumnWidth(0, 350)
         self.SetColumnWidth(1, 100)
@@ -149,9 +148,9 @@ class ConcertListCtrl(wx.ListCtrl):
         self._artist = None
         self.clist = None
 
-        self.InsertColumn(0, _("Date"))
-        self.InsertColumn(1, _("Concert Venue"))
-        self.InsertColumn(2, _("Favorite"))
+        self.InsertColumn(0, _(u"Date"))
+        self.InsertColumn(1, _(u"Concert Venue"))
+        self.InsertColumn(2, _(u"Favorite"))
 
         self.SetColumnWidth(0, 100)
         self.SetColumnWidth(1, 350)
@@ -191,12 +190,12 @@ class ConcertListCtrl(wx.ListCtrl):
     def toggleFavorite(self):
         self._artist.favorite = not self._artist.favorite
         if self._artist.favorite:
-            msg = _("%s is now marked as a favorite") % self._artist.name
-            cap = _("Favorite set")
+            msg = _(u"%s is now marked as a favorite") % self._artist.name
+            cap = _(u"Favorite set")
             style = wx.ICON_INFORMATION | wx.OK
         else:
-            msg = _("%s is no longer marked as a favorite") % self._artist.name
-            cap = _("Favorite cleared")
+            msg = _(u"%s is no longer marked as a favorite") % self._artist.name
+            cap = _(u"Favorite cleared")
             style = wx.ICON_EXCLAMATION | wx.OK
         popup = wx.MessageDialog(self, msg, caption=cap, style=style)
         popup.ShowModal()
@@ -235,7 +234,7 @@ class ConcertListPanel(wx.Panel):
         search.ShowCancelButton(True)
         self.Bind(wx.EVT_TEXT_ENTER, self.OnSearch, search)
         self.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.OnCancelSearch)
-        label = wx.StaticText(self, -1, _("Select:"))
+        label = wx.StaticText(self, -1, _(u"Select:"))
         select = wx.Choice(self, -1, choices=lma.CVIEW_SELECTORS)
         self.Bind(wx.EVT_CHOICE, self.setConcertMode)
 
@@ -251,7 +250,7 @@ class ConcertListPanel(wx.Panel):
         sizer.Add(self._listctrl, 1, wx.EXPAND)
 
         # make a back button at the bottom
-        button = wx.Button(self, CONCERT_BACK_BUTTON_ID, _("Back"))
+        button = wx.Button(self, CONCERT_BACK_BUTTON_ID, _(u"Back"))
         tmpsizer = wx.BoxSizer(wx.HORIZONTAL)
         tmpsizer.Add(button, 0, wx.ALIGN_CENTER)
         sizer.Add(tmpsizer, 0)
@@ -294,14 +293,14 @@ class ConcertDetailsMetaWindow(wx.ScrolledWindow):
         sbsizer = wx.StaticBoxSizer(sbox, wx.VERTICAL)
 
         # create inner static box sizers for description, notes, etc.
-        box = wx.StaticBox(self, -1, _("Description"))
+        box = wx.StaticBox(self, -1, _(u"Description"))
         self._description = wx.StaticText(self, -1, "")
 
         tmpsizer = wx.StaticBoxSizer(box, wx.HORIZONTAL)
         tmpsizer.Add(self._description, 0)
         sbsizer.Add(tmpsizer, 1)
 
-        box = wx.StaticBox(self, -1, _("Notes"))
+        box = wx.StaticBox(self, -1, _(u"Notes"))
         self._notes = wx.StaticText(self, -1, "")
 
         tmpsizer = wx.StaticBoxSizer(box, wx.HORIZONTAL)
@@ -327,9 +326,9 @@ class ConcertSongListWindow(wx.ListCtrl):
         self._concert = None
         self._flist = None
 
-        self.InsertColumn(0, _("Track"))
-        self.InsertColumn(1, _("Title"))
-        self.InsertColumn(2, _("Formats"))
+        self.InsertColumn(0, _(u"Track"))
+        self.InsertColumn(1, _(u"Title"))
+        self.InsertColumn(2, _(u"Formats"))
 
         self.SetColumnWidth(0, 50)
         self.SetColumnWidth(1, 300)
@@ -359,12 +358,12 @@ class ConcertSongListWindow(wx.ListCtrl):
     def toggleFavorite(self):
         self._concert.favorite = not self._concert.favorite
         if self._concert.favorite:
-            msg = _("%s is now marked as a favorite") % self._concert.name
-            cap = _("Favorite set")
+            msg = _(u"%s is now marked as a favorite") % self._concert.name
+            cap = _(u"Favorite set")
             style = wx.ICON_INFORMATION | wx.OK
         else:
-            msg = _("%s is no longer marked as a favorite") % self._concert.name
-            cap = _("Favorite cleared")
+            msg = _(u"%s is no longer marked as a favorite") % self._concert.name
+            cap = _(u"Favorite cleared")
             style = wx.ICON_EXCLAMATION | wx.OK
         popup = wx.MessageDialog(self, msg, caption=cap, style=style)
         popup.ShowModal()
@@ -380,8 +379,8 @@ class ConcertDetailsPanel(wx.Panel):
         self._pad = wx.Notebook(self, -1, style=wx.NB_TOP)
         self._details = ConcertDetailsMetaWindow(self._pad, -1)
         self._slist = ConcertSongListWindow(self._pad, DETAILS_LIST_ID)
-        self._pad.AddPage(self._details, _("Details"), True)
-        self._pad.AddPage(self._slist, _("Songs"), False)
+        self._pad.AddPage(self._details, _(u"Details"), True)
+        self._pad.AddPage(self._slist, _(u"Songs"), False)
 
         # label field at top
         self._label = wx.StaticText(self, -1, "")
@@ -441,20 +440,20 @@ class WxLMAFrame(wx.Frame):
 
         # file menu
         self._fileMenu = wx.Menu()
-        self._fileMenu.Append(101, _("&Fetch Records"),
-                              _("Fetch/update from LMA"))
-        self._fileMenu.Append(102, _("&Clear New List"),
-                              _("Mark all as seen."))
-        self._fileMenu.Append(103, _("&Mark Favorite"),
-                              _("Mark this as a favorite."))
+        self._fileMenu.Append(101, _(u"&Fetch Records"),
+                              _(u"Fetch/update from LMA"))
+        self._fileMenu.Append(102, _(u"&Clear New List"),
+                              _(u"Mark all as seen."))
+        self._fileMenu.Append(103, _(u"&Mark Favorite"),
+                              _(u"Mark this as a favorite."))
         self._fileMenu.Enable(103, False)
-        self._fileMenu.Append(wx.ID_ABOUT, _("&Quit"), _("Exit program"))
-        menubar.Append(self._fileMenu, _("&File"))
+        self._fileMenu.Append(wx.ID_EXIT, _(u"&Quit"), _(u"Exit program"))
+        menubar.Append(self._fileMenu, _(u"&File"))
 
         # help menu
         self._helpMenu = wx.Menu()
-        self._helpMenu.Append(wx.ID_EXIT, _("&About"), _("About LMABrowser"))
-        menubar.Append(self._helpMenu, _("&Help"))
+        self._helpMenu.Append(wx.ID_ABOUT, _(u"&About"), _(u"About LMABrowser"))
+        menubar.Append(self._helpMenu, _(u"&Help"))
 
         self.SetMenuBar(menubar)
 
@@ -518,11 +517,11 @@ class WxLMAFrame(wx.Frame):
         """Create and display 'About' window."""
         from wx.lib.wordwrap import wordwrap
         info = wx.AboutDialogInfo()
-        info.Name = _("LMA Browser")
+        info.Name = _(u"LMA Browser")
         info.Version = lma.__version__
-        info.Copyright = ("(c) 2012 Chris Waters")
+        info.Copyright = (u"\u24d2 2012 Chris Waters")
         info.Description = wordwrap(
-            _("Browse and download concert recordings from the "
+            _(u"Browse and download concert recordings from the "
             "Internet Archive's Live Music Archive (LMA). "
             "The LMA features live concert recordings from "
             "thousands of taper-friendly bands, free for personal use.\n\n"
@@ -530,7 +529,7 @@ class WxLMAFrame(wx.Frame):
             "Recordings are available in lossless format (FLAC or SHN), and "
             "in many cases, as lossy MP3 or Ogg Vorbis as well."),
             350, wx.ClientDC(self))
-        info.Developers = ["Chris Waters <xtifr.w@gmail.org"]
+        info.Developers = ["Chris Waters <xtifr.w@gmail.org>"]
         wx.AboutBox(info)
 
 #
@@ -540,7 +539,7 @@ class WxLMAFrame(wx.Frame):
 class LMAApp(wx.App):
     def OnInit(self):
         self.SetAppName("LMA Browser")
-        win = WxLMAFrame(None, -1, _("LMA Browser"))
+        win = WxLMAFrame(None, -1, _(u"LMA Browser"))
         win.Show()
         return True
 
