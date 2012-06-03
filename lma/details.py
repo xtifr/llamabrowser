@@ -107,7 +107,8 @@ class FileXMLHandler(xmlhandler.ContentHandler):
             self._filedata["source"] = attrs.getValue("source")
         elif self._filedata != None:
             # we're processing a file
-            if name in ['original', 'md5', 'format', 'album', 'title', 'track']:
+            if name in ['original', 'md5', 'format', 'album',
+                        'title', 'track', 'size']:
                 self._key = name
                 self._value = []
     def characters(self, content):
@@ -308,12 +309,15 @@ class ConcertFileList(object):
             if d['format'].lower() == format.lower():
                 return d
         return None
-    def getFormatTitle(self, i, format):
+    def getTitle(self, i):
         """Return the song title, or base filename if not defined."""
-        rec = self.getFormatFile(i, format)
+        rec = self.song(i)
         if 'title' in rec:
             return rec['title']
         return rec['name']
+    def getFormatSize(self, i, format):
+        return int(self.getFormatFile(i, format)['size'])
+
     def getSongRemotePath(self, i, format):
         return "%s/%s" % (self.concert.lmaid,
                           self.getFormatFile(i, format)['name'])

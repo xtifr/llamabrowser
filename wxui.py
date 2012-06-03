@@ -35,16 +35,18 @@ class WxProgressBar(object):
         self._dialog.Destroy()
 
 #
-# Download menu (for songs)
+# Download dialog (for songs)
 #
 class DownloadDialog(wx.Dialog):
-    """Download songs (and other files)"""
-    def __init__(self, parent, id, songlist):
-        title = _(u"Download %s") % songlist.concert.name
-        super(DownloadDialog, self).__init__(parent, id, title)
+    """Download songs.  Call run() method to use."""
+    def __init__(self, parent, id, songs):
         self._path = lma.Config().lossless_path()
-        self._format = songlist.LosslessFormat()
+        self._songs = songs
+        self._format = songs.LosslessFormat()
         self._subdir = True # default should be configurable!
+
+        title = _(u"Download %s") % songs.concert.name
+        super(DownloadDialog, self).__init__(parent, id, title)
 
         sizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -53,9 +55,12 @@ class DownloadDialog(wx.Dialog):
 
         label = wx.StaticText(self, -1, _(u"Format: "))
         tmpsizer.Add(label, 0, wx.ALIGN_CENTER)
-        self._choice = wx.Choice(self, -1, choices=songlist.getFormats(0))
+        self._choice = wx.Choice(self, -1, choices=self._songs.getFormats(0))
         self.Bind(wx.EVT_CHOICE, self.OnFormat, self._choice)
         tmpsizer.Add(self._choice, 0, wx.ALIGN_CENTER)
+
+        self._total = wx.StaticText(self, -1, "")
+        tmpsizer.Add(self._total, 0, wx.ALIGN_CENTER|wx.LEFT, 5)
 
         sizer.Add(tmpsizer, 0, wx.LEFT, 5)
 
@@ -80,11 +85,12 @@ class DownloadDialog(wx.Dialog):
 
         # now the main songlist
         names = []
-        for i in range(len(songlist)):
-            names.append(songlist.getFormatTitle(i, self._format))
+        for i in range(len(self._songs)):
+            names.append(self._songs.getTitle(i))
         self._list = wx.CheckListBox(self, -1, choices=names)
+        self.Bind(wx.EVT_CHECKLISTBOX, self.OnSongChecked, self._list)
         # check them all by default
-        for i in range(len(songlist)):
+        for i in range(len(self._songs)):
             self._list.Check(i, True)
 
         sizer.Add(self._list, 1, wx.ALL, 5)
@@ -93,17 +99,41 @@ class DownloadDialog(wx.Dialog):
         if bsizer != None:
             sizer.Add(bsizer, 0, wx.ALIGN_RIGHT)
 
+        self.showTotal()
         self.SetSizer(sizer)
+
+    def showTotal(self):
+        """Display total for current format."""
+        total = 0
+        for i in range(len(self._songs)):
+            if self._list.IsChecked(i):
+                total += self._songs.getFormatSize(i, self._format)
+        if total < 1e6:
+            val = "%.2fk" % (total/1e3)
+        elif total < 1e9:
+            val = "%.2fM" % (total/1e6)
+        else:
+            val = ".2fG" % (total/1e9)
+        self._total.SetLabel(_(u"Total Size: %s") % val)
+
+    def run(self):
+        """Shows self, and then tries to download if OK selected."""
+        while self.ShowModal() == wx.ID_OK:
+            pass # insert download code here
 
     # event bindings
     def OnFormat(self, event):
         """Select the file format"""
         self._format = event.GetString()
+        self.showTotal()
     def OnDestPick(self, event):
         """Select Destination Directory"""
         self._path = event.GetString()
     def OnSubdir(self, event):
         self._subdir = event.IsChecked()
+    def OnSongChecked(self, event):
+        """Just update the totals"""
+        self.showTotal()
 
 #
 # artist listings
@@ -441,9 +471,7 @@ class ConcertSongListWindow(wx.ListCtrl):
         popup.Destroy()
     def download(self):
         frame = DownloadDialog(self, -1, self._flist)
-        result = frame.ShowModal()
-        if result == wx.ID_OK:
-            pass # insert download code here!
+        result = frame.run()
         frame.Destroy()
 
 class ConcertDetailsPanel(wx.Panel):
