@@ -8,7 +8,6 @@ For initial release:
 ** play songs
 ** make display look better (notebook is better, but still needs scrolling)
 * Downloading actual concerts
-** where to store them?
 ** update songnames (if edited) for flac and lossy
 ** add missing metadata to flac
 * Use home directory for config
@@ -24,7 +23,7 @@ For initial release:
 Little tasks:
 * Reset the search & selection widgets when showing the concert frame.
 * Move to the top of the list when showing the concert and song frames.
-* Figure out why Dave Malone, 2011-01-13 won't load. (Bad xml?)
+* Figure out how to handle nested songs (two directories deep)
 
 Longer term
 

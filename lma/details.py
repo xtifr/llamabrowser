@@ -28,7 +28,7 @@ lossless_audio_formats = [FMT_FLAC, FMT_FLAC24, FMT_SHN, FMT_WAV, FMT_AIFF,
 
 # lossy (derivative) formats
 FMT_OGG = "ogg vorbis"
-FMT_MP3 = "vbr mpt"
+FMT_MP3 = "vbr mp3"
 FMT_64MP3 = "64kbps mp3"
 
 lossy_audio_formats = [FMT_OGG, FMT_MP3, FMT_64MP3 ]
@@ -149,31 +149,42 @@ def organize_filelist(files):
     """organize the file data into something useful."""
 
     songs = {}
-    derivatives = {} # orig_name : [record,...]
+    derivatives = {}
     other = []
+    lossless = ""
+
+    # we're going to sort with lower-case formats, but we want to be
+    # able to recover the mixed-case formats for a nice display after.
+    # this translate table will help us achieve that.
+    xlate_fmt = {}
 
     for f in files:
+        f_name = f['name']
+
+        # make sure all of these have a title field
+        if not 'title' in f:
+            f['title'] = f_name
+
         # find the file's format
-        if not f.has_key('format'):
+        if not 'format' in f:
             other.append(f)
             continue
 
-        f_name = f['name']
-        f_format = f['format'].lower()
+        f_format = f['format']
+        f_formatlc = f_format.lower()
         f_source = f['source'].lower()
 
         # lossless audio formats will always be the original
-        if f_format in lossless_audio_formats:
+        if f_formatlc in lossless_audio_formats:
             songs[f_name] = f
+            lossless = f_format
             continue
 
         # check for derivative audio file
-        if ((f_format in lossy_audio_formats) and f.has_key('original')):
-            # make value list if it doesn't exist
-            if not derivatives.has_key(f['original']):
-                derivatives[f['original']] = []
-            # add record to value list
-            derivatives[f['original']].append(f)
+        if f_formatlc in lossy_audio_formats and 'original' in f:
+            # now we make the translate table (only needs lossy formats)
+            derivatives.setdefault(f_formatlc, {})[f['original']] = f
+            xlate_fmt[f_formatlc] = f_format
             continue
 
         # everything else goes in other
@@ -182,11 +193,24 @@ def organize_filelist(files):
     # now sort the song filenames alphabetically
     tracks = songs.keys()
     tracks.sort()
+    # build a 2d list of songs in track order
+    songlist = []
+    for trk in tracks:
+        item = [songs[trk]]
+        for fmt in lossy_audio_formats:
+            if fmt in derivatives:
+                if trk in derivatives[fmt]:
+                    item.append(derivatives[fmt][trk])
+                else: 
+                    # we hope this never happens
+                    item.append(None)
+        songlist.append(item)
+    # now build a table of formats using our xlate_table from above
+    fmtlist = [lossless]
+    for k in derivatives:
+        fmtlist.append(xlate_fmt[k])
 
-    # also sort the derivative types
-    for k in derivatives.iterkeys():
-        derivatives[k].sort(lambda x,y : cmp(x['format'], y['format']))
-    return (tracks, songs, derivatives, other)
+    return (songlist, other, fmtlist)
 
 #
 # Concert details, like description, notes, etc.
@@ -211,7 +235,7 @@ class ConcertDetails(object):
         self._data = get_meta_data(lmaid)
         # make sure we have all fields defined
         for field in meta_fields:
-            if not self._data.has_key(field):
+            if not field in self._data:
                 self._data[field] = ""
 
     def saveToCache(self):
@@ -264,60 +288,32 @@ class ConcertFileList(object):
     def loadFromArchive(self):
         """Get Files/Songlist from Archive."""
         data = get_filelist_data(self.concert.lmaid)
-        (tracks, songs, derivatives, others) = organize_filelist(data)
-        self._tracks = tracks
-        self._songs = songs
-        self._derivatives = derivatives
-        self._others = others
-
-        self.types = [self.song(0)['format']]
-        for rec in self.derivatives(0):
-            self.types.append(rec['format'])
-
-        # cache formats, as gathered from the first track
-        self._formats = self.getFormats(0)
-
-    def song(self, num):
-        return self._songs[self._tracks[num]]
-    def derivatives(self, num):
-        return self._derivatives[self._tracks[num]]
+        (self._songs, self.others, self.formats) = organize_filelist(data)
+        # this converts a type into a column# for the songs table
+        self._idx = {fmt : i for i,fmt in enumerate(self.formats)}
+        # default to first (lossless) format
+        self.current_format = self.LosslessFormat()
 
     # support reading like an array
     # (need to add access to self._other too at some point)
     def __len__(self):
         return len(self._songs)
     def __getitem__(self, i):
-        """Return an item -- either a song or a file."""
-        return self.song(i)
+        """Return a song of the currently selected format"""
+        return self._songs[i][self._idx[self.current_format]]
+    def __iter__(self):
+        """Create an iterator for the songs"""
+        for song in self._songs:
+            yield song[self._idx[self.current_format]]
+    @property
+    def current_format(self):
+        return self._current_format
+    @current_format.setter
+    def current_format(self, value):
+        if value in self.formats:
+            self._current_format = value
     def hasLossy(self):
-        return len(self.derivatives) > 0
-    def getDerivatives(self, i):
-        return self.derivatives(i)
-    def getFormats(self, i):
-        fmt = [self.song(i)['format']]
-        for d in self.derivatives(i):
-            fmt.append(d['format'])
-        return fmt
+        return len(self.formats) > 1
     def LosslessFormat(self):
         """Return the lossless format for this concert"""
-        return self._formats[0]
-    def getFormatFile(self, i, format):
-        """Return the file of the specified type, or None."""
-        if format.lower() == self.LosslessFormat().lower():
-            return self.song(i)
-        for d in self.derivatives(i):
-            if d['format'].lower() == format.lower():
-                return d
-        return None
-    def getTitle(self, i):
-        """Return the song title, or base filename if not defined."""
-        rec = self.song(i)
-        if 'title' in rec:
-            return rec['title']
-        return rec['name']
-    def getFormatSize(self, i, format):
-        return int(self.getFormatFile(i, format)['size'])
-
-    def getSongRemotePath(self, i, format):
-        return "%s/%s" % (self.concert.lmaid,
-                          self.getFormatFile(i, format)['name'])
+        return self.formats[0]

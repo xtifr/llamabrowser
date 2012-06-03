@@ -48,7 +48,6 @@ class DownloadDialog(wx.Dialog):
         self._path = lma.Config().lossless_path()
         self._songs = songs
         self._concert = concert
-        self._format = songs.LosslessFormat()
         self._subdir = True # default should be configurable!
 
         title = _(u"Download %s") % songs.concert.name
@@ -61,7 +60,7 @@ class DownloadDialog(wx.Dialog):
 
         label = wx.StaticText(self, -1, _(u"Format: "))
         tmpsizer.Add(label, 0, wx.ALIGN_CENTER)
-        self._choice = wx.Choice(self, -1, choices=self._songs.getFormats(0))
+        self._choice = wx.Choice(self, -1, choices=self._songs.formats)
         self.Bind(wx.EVT_CHOICE, self.OnFormat, self._choice)
         tmpsizer.Add(self._choice, 0, wx.ALIGN_CENTER)
 
@@ -90,9 +89,7 @@ class DownloadDialog(wx.Dialog):
         sizer.Add(check, 0, wx.LEFT, 5)
 
         # now the main songlist
-        names = []
-        for i in range(len(self._songs)):
-            names.append(self._songs.getTitle(i))
+        names = [song['title'] for song in self._songs]
         self._list = wx.CheckListBox(self, -1, choices=names)
         self.Bind(wx.EVT_CHECKLISTBOX, self.OnSongChecked, self._list)
         # check them all by default
@@ -110,16 +107,14 @@ class DownloadDialog(wx.Dialog):
 
     def showTotal(self):
         """Display total for current format."""
-        total = 0
-        for i in range(len(self._songs)):
-            if self._list.IsChecked(i):
-                total += self._songs.getFormatSize(i, self._format)
+        total = sum([int(song['size']) for i,song in enumerate(self._songs)
+                    if self._list.IsChecked(i)])
         if total < 1e6:
             val = "%.2fk" % (total/1e3)
         elif total < 1e9:
             val = "%.2fM" % (total/1e6)
         else:
-            val = ".2fG" % (total/1e9)
+            val = "%.2fG" % (total/1e9)
         self._total.SetLabel(_(u"Total Size: %s") % val)
 
     def run(self):
@@ -128,10 +123,8 @@ class DownloadDialog(wx.Dialog):
             artist = None
             if self._subdir:
                 artist =self._concert.artist.name
-            to_get = []
-            for i in range(len(self._songs)):
-                if self._list.IsChecked(i):
-                    to_get.append(self._songs.getFormatFile(i, self._format))
+            to_get = [song for i, song in enumerate(self._songs)
+                      if self._list.IsChecked(i)]
             if lma.download_files(to_get, self._concert, self._path,
                                   artist, WxProgressBar):
                 break
@@ -140,7 +133,7 @@ class DownloadDialog(wx.Dialog):
     # event bindings
     def OnFormat(self, event):
         """Select the file format"""
-        self._format = event.GetString()
+        self._songs.current_format = event.GetString()
         self.showTotal()
     def OnDestPick(self, event):
         """Select Destination Directory"""
@@ -445,11 +438,13 @@ class ConcertSongListWindow(wx.ListCtrl):
 
         self.InsertColumn(0, _(u"Track"))
         self.InsertColumn(1, _(u"Title"))
-        self.InsertColumn(2, _(u"Formats"))
+        self.InsertColumn(2, _(u"Format"))
+        self.InsertColumn(3, _(u"Has Lossy"))
 
         self.SetColumnWidth(0, 50)
-        self.SetColumnWidth(1, 300)
-        self.SetColumnWidth(2, 200)
+        self.SetColumnWidth(1, 350)
+        self.SetColumnWidth(2, 80)
+        self.SetColumnWidth(3, 80)
 
     def reset(self):
         if self._flist != None:
@@ -467,11 +462,11 @@ class ConcertSongListWindow(wx.ListCtrl):
             return str(row+1)
         if column == 1:
             song = self._flist[row]
-            if song.has_key('title'):
-                return song['title']
-            return song['name']
+            return song['title']
         if column == 2:
-            return ",".join(self._flist.getFormats(row))
+            return self._flist.LosslessFormat()
+        if column == 3:
+            return self._flist.hasLossy()
     def toggleFavorite(self):
         self._concert.favorite = not self._concert.favorite
         if self._concert.favorite:
