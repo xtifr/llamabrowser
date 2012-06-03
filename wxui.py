@@ -208,6 +208,7 @@ class ArtistListPanel(wx.Panel):
 
         # create the top row of widgets
         search = wx.SearchCtrl(self, -1, style = wx.TE_PROCESS_ENTER)
+        search.SetDescriptiveText(_(u"Search Artists"))
         search.ShowCancelButton(True)
         self.Bind(wx.EVT_TEXT_ENTER, self.OnSearch, search)
         self.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.OnCancelSearch)
@@ -250,7 +251,7 @@ class ArtistListPanel(wx.Panel):
 # concert listings
 #
 class ConcertListCtrl(wx.ListCtrl):
-    """List box for concerts."""
+    """List box for concerts.  Must be initialized with setArtist()."""
     def __init__(self, parent, id=-1,
                  style = (wx.LC_REPORT | wx.LC_VIRTUAL | wx.LC_SINGLE_SEL
                           | wx.LC_HRULES | wx.LC_VRULES)):
@@ -292,8 +293,12 @@ class ConcertListCtrl(wx.ListCtrl):
     def getConcert(self, row):
         return self.clist[row]
     def setArtist(self, artist):
+        """Set artist to display concerts for.  Must be called before using."""
         self._artist = artist
         self.clist = lma.ConcertList(artist, ProgressBar)
+        # move to top
+        if self.GetItemCount() > 0:
+            self.EnsureVisible(0)
         self.reset()
     def getArtistName(self):
         return self.clist.artistName
@@ -323,7 +328,10 @@ class ConcertListCtrl(wx.ListCtrl):
             return ""
 
 class ConcertListPanel(wx.Panel):
-    """Panel for listing an artist's concerts."""
+    """Panel for listing an artist's concerts.
+
+    Must call setArtist() before first use."""
+
     def __init__(self, parent, id=-1):
         super(ConcertListPanel, self).__init__(parent, id)
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -340,20 +348,21 @@ class ConcertListPanel(wx.Panel):
         sizer.Add(tmpsizer, 0, wx.ALIGN_CENTER)
 
         # create the top row of widgets
-        search = wx.SearchCtrl(self, -1, style = wx.TE_PROCESS_ENTER)
-        search.ShowCancelButton(True)
-        self.Bind(wx.EVT_TEXT_ENTER, self.OnSearch, search)
+        self._search = wx.SearchCtrl(self, -1, style = wx.TE_PROCESS_ENTER)
+        self._search.SetDescriptiveText(_(u"Search Concerts"))
+        self._search.ShowCancelButton(True)
+        self.Bind(wx.EVT_TEXT_ENTER, self.OnSearch)
         self.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.OnCancelSearch)
         label = wx.StaticText(self, -1, _(u"Select:"))
-        select = wx.Choice(self, -1, choices=lma.CVIEW_SELECTORS)
-        self.Bind(wx.EVT_CHOICE, self.setConcertMode)
+        self._choice = wx.Choice(self, -1, choices=lma.CVIEW_SELECTORS)
+        self.Bind(wx.EVT_CHOICE, self.setConcertMode, self._choice)
 
         # make a sizer for the top row
         tmpsizer = wx.BoxSizer(wx.HORIZONTAL)
-        tmpsizer.Add(search, 0, wx.ALIGN_CENTER)
+        tmpsizer.Add(self._search, 0, wx.ALIGN_CENTER)
         tmpsizer.AddStretchSpacer()
         tmpsizer.Add(label, 0, wx.ALIGN_CENTER)
-        tmpsizer.Add(select, 0, wx.ALIGN_CENTER)
+        tmpsizer.Add(self._choice, 0, wx.ALIGN_CENTER)
         sizer.Add(tmpsizer, 0, wx.EXPAND)
 
         # now it's time to add the listctrl
@@ -368,8 +377,13 @@ class ConcertListPanel(wx.Panel):
         self.SetSizer(sizer)
 
     def setArtist(self, artist):
+        """Choose the artist to display.  Must be called before using."""
         self._listctrl.setArtist(artist)
         self._label.SetLabel(artist.name)
+        # reset search/choice widgets
+        self._search.Clear()
+        self._choice.SetSelection(0)
+
     def download(self):
         self._listctrl.download()
     def clearNew(self):
@@ -393,7 +407,10 @@ class ConcertListPanel(wx.Panel):
 # Concert details panel
 #
 class ConcertDetailsMetaWindow(wx.ScrolledWindow):
-    """Sub-panel for displaying concert meta info (like the desciption)."""
+    """Sub-panel for displaying concert meta info (like the desciption).
+
+    Must call setConcert() before actually using."""
+
     def __init__(self, parent, id=-1):
         super(ConcertDetailsMetaWindow, self).__init__(parent, id)
         self.SetScrollRate(20, 20)
@@ -419,9 +436,11 @@ class ConcertDetailsMetaWindow(wx.ScrolledWindow):
         self.SetSizer(sizer)
 
     def setConcert(self, concert):
-        """Add details to fields."""
+        """Add details to fields, make panel ready for use."""
         self._concert = concert
         self._details = lma.ConcertDetails(concert)
+
+        # replace description and notes, and move to top
         self._description.Replace(0, self._description.GetLastPosition(),
                                   self._details.description)
         self._description.ShowPosition(0)
@@ -430,7 +449,10 @@ class ConcertDetailsMetaWindow(wx.ScrolledWindow):
         self._notes.ShowPosition(0)
 
 class ConcertSongListWindow(wx.ListCtrl):
-    """Sub-panel for displaying individual songs."""
+    """Sub-panel for displaying individual songs.
+
+    Must call setConcert() before actual use."""
+
     def __init__(self, parent, id=-1):
         style = (wx.LC_REPORT | wx.LC_VIRTUAL | wx.LC_SINGLE_SEL
                  | wx.LC_HRULES | wx.LC_VRULES)
@@ -455,10 +477,12 @@ class ConcertSongListWindow(wx.ListCtrl):
     def setConcert(self, concert):
         """Add songs to fields."""
         self._concert = concert
+        # move to top
+        if self.GetItemCount() > 0:
+            self.EnsureVisible(0)
         self._flist = lma.ConcertFileList(concert)
         self.reset()
 
-    # override widget methods
     def OnGetItemText(self, row, column):
         if column == 0:
             return str(row+1)
@@ -488,7 +512,11 @@ class ConcertSongListWindow(wx.ListCtrl):
         frame.Destroy()
 
 class ConcertDetailsPanel(wx.Panel):
-    """Panel for listing details of a particular concert."""
+    """Panel for listing details of a particular concert.
+
+    Must call setConcert() before actual use.  This will also initialize
+    its metadata and song listing subpanels."""
+
     def __init__(self, parent, id=-1):
         super(ConcertDetailsPanel, self).__init__(parent, id)
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -512,7 +540,7 @@ class ConcertDetailsPanel(wx.Panel):
         sizer.Add(self._pad, 1, wx.EXPAND)
 
         # make a back button at the bottom
-        button = wx.Button(self, DETAILS_BACK_BUTTON_ID, "Back")
+        button = wx.Button(self, DETAILS_BACK_BUTTON_ID, _(u"Back"))
         tmpsizer = wx.BoxSizer(wx.HORIZONTAL)
         tmpsizer.Add(button, 0)
         sizer.Add(tmpsizer, 0)
@@ -520,6 +548,7 @@ class ConcertDetailsPanel(wx.Panel):
         self.SetSizer(sizer)
 
     def setConcert(self, concert):
+        """Choose concert to display.  Must be called before using."""
         self._label.SetLabel(concert.name)
         self._details.setConcert(concert)
         self._slist.setConcert(concert)

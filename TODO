@@ -5,6 +5,7 @@ For initial release:
 * Use home directory for config
 ** UI for configuring
 * Note downloaded concerts
+* Artist details (to match concert details)
 * Add actual help
 * Downloading enhancements
 ** add missing metadata to flac
@@ -18,13 +19,16 @@ For initial release:
 * Figure out and document licensing
 
 Little tasks:
-* Reset the search & selection widgets when showing the concert frame.
-* Move to the top of the list when showing the concert and song frames.
 * Figure out how to handle nested songs (two directories deep)
-* add taper, etc. to concert details
+* Add taper, etc. to concert details
+* Add check for database version to protect against upgrades.
 
 Longer term
 
+* Autoconvert shn to flac option
+* Hide artists/concerts (just not interested)
+* Discard concert lists for artists
+** Add metadata too
 * Allow interrupting and restarting downloads, by making use of the
   pubdate field we're already grabbing from the archive.
 * Limit viewing artists by starting letter
@@ -32,8 +36,6 @@ Longer term
 * Cache songnames
 * Edit songnames (metadata)
 ** Update downloaded files
-* Autoconvert shn to flac option
-** Add metadata too
 * Remove redundant artist name from concert name in concert list
 * (Option): ignore leading "The" and "A" when sorting artists.
 * Allow user to define arbitrary tags (similar to the favorites flag)
@@ -42,8 +44,6 @@ Longer term
 * reviews / stars
 ** browsing
 ** posting
-* Hide artists/concerts (just not interested)
-* Discard concert lists for artists
 * Alternative sorting options for display.
 * Broad cross-artist Archive search for songs, etc.
   (Basically, formulate custom searches and handle the results specially.)
