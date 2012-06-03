@@ -20,7 +20,7 @@ DETAILS_BACK_BUTTON_ID = 22
 # progress bar for download callback
 #
 
-class WxProgressBar(object):
+class ProgressBar(object):
     """Provide progress bars for downloading."""
     def __init__(self, title, msg, max=100, can_cancel=False):
         style = wx.PD_APP_MODAL | wx.PD_ELAPSED_TIME | wx.PD_AUTO_HIDE
@@ -126,7 +126,7 @@ class DownloadDialog(wx.Dialog):
             to_get = [song for i, song in enumerate(self._songs)
                       if self._list.IsChecked(i)]
             if lma.download_files(to_get, self._concert, self._path,
-                                  artist, WxProgressBar):
+                                  artist, ProgressBar):
                 break
         self.Destroy()
 
@@ -154,7 +154,7 @@ class ArtistListCtrl(wx.ListCtrl):
                  style = (wx.LC_REPORT | wx.LC_VIRTUAL | wx.LC_SINGLE_SEL
                           | wx.LC_HRULES | wx.LC_VRULES)):
         super(ArtistListCtrl, self).__init__(parent, id, style=style)
-        self.alist = lma.ArtistList(WxProgressBar)
+        self.alist = lma.ArtistList(ProgressBar)
 
         self.InsertColumn(0, _(u"Artist Name"))
         self.InsertColumn(1, _(u"Last Browsed"))
@@ -293,7 +293,7 @@ class ConcertListCtrl(wx.ListCtrl):
         return self.clist[row]
     def setArtist(self, artist):
         self._artist = artist
-        self.clist = lma.ConcertList(artist, WxProgressBar)
+        self.clist = lma.ConcertList(artist, ProgressBar)
         self.reset()
     def getArtistName(self):
         return self.clist.artistName
@@ -386,7 +386,7 @@ class ConcertListPanel(wx.Panel):
         """Event handler for search widget."""
         self._listctrl.setSearch(event.GetString())
     def OnCancelSearch(self, event):
-        """Event andler to clear search widget."""
+        """Event handler to clear search widget."""
         self._listctrl.clearSearch()
 
 #
@@ -396,36 +396,38 @@ class ConcertDetailsMetaWindow(wx.ScrolledWindow):
     """Sub-panel for displaying concert meta info (like the desciption)."""
     def __init__(self, parent, id=-1):
         super(ConcertDetailsMetaWindow, self).__init__(parent, id)
+        self.SetScrollRate(20, 20)
+
         sizer = wx.BoxSizer(wx.VERTICAL)
 
-        # create a Static Box Sizer wrapping everything but the title
-        sbox = wx.StaticBox(self, -1)
-        sbsizer = wx.StaticBoxSizer(sbox, wx.VERTICAL)
-
-        # create inner static box sizers for description, notes, etc.
+        # create static box sizers for description, notes, etc.
         box = wx.StaticBox(self, -1, _(u"Description"))
-        self._description = wx.StaticText(self, -1, "")
+        txtstyle = wx.TE_READONLY | wx.TE_MULTILINE
+        self._description = wx.TextCtrl(self, -1, "", style=txtstyle)
 
         tmpsizer = wx.StaticBoxSizer(box, wx.HORIZONTAL)
-        tmpsizer.Add(self._description, 0)
-        sbsizer.Add(tmpsizer, 1)
+        tmpsizer.Add(self._description, 1, wx.EXPAND)
+        sizer.Add(tmpsizer, 1, wx.EXPAND)
 
         box = wx.StaticBox(self, -1, _(u"Notes"))
-        self._notes = wx.StaticText(self, -1, "")
+        self._notes = wx.TextCtrl(self, -1, "", style=txtstyle)
 
         tmpsizer = wx.StaticBoxSizer(box, wx.HORIZONTAL)
-        tmpsizer.Add(self._notes, 0)
-        sbsizer.Add(tmpsizer, 1)
+        tmpsizer.Add(self._notes, 1, wx.EXPAND)
+        sizer.Add(tmpsizer, 1, wx.EXPAND)
 
-        sizer.Add(sbsizer, 1)
         self.SetSizer(sizer)
 
     def setConcert(self, concert):
         """Add details to fields."""
         self._concert = concert
         self._details = lma.ConcertDetails(concert)
-        self._description.SetLabel(self._details.description)
-        self._notes.SetLabel(self._details.notes)
+        self._description.Replace(0, self._description.GetLastPosition(),
+                                  self._details.description)
+        self._description.ShowPosition(0)
+        self._notes.Replace(0, self._notes.GetLastPosition(), 
+                            self._details.notes)
+        self._notes.ShowPosition(0)
 
 class ConcertSongListWindow(wx.ListCtrl):
     """Sub-panel for displaying individual songs."""
@@ -531,9 +533,9 @@ class ConcertDetailsPanel(wx.Panel):
 #
 # Set up main frame
 #
-class WxLMAFrame(wx.Frame):
-    def __init__(self, parent, ID, title, size=(600, 400)):
-        super(WxLMAFrame, self).__init__(parent, ID, title, size=size)
+class LMAFrame(wx.Frame):
+    def __init__(self, parent, ID, title, size=(600, 450)):
+        super(LMAFrame, self).__init__(parent, ID, title, size=size)
 
         self._artist = ArtistListPanel(self, -1)
         self._concert = ConcertListPanel(self, -1)
@@ -658,7 +660,7 @@ class WxLMAFrame(wx.Frame):
 class LMAApp(wx.App):
     def OnInit(self):
         self.SetAppName("LMA Browser")
-        win = WxLMAFrame(None, -1, _(u"LMA Browser"))
+        win = LMAFrame(None, -1, _(u"LMA Browser"))
         win.Show()
         return True
 
