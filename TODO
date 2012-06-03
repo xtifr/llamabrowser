@@ -2,13 +2,14 @@ Some of these will obviously end up generating subtasks
 
 For initial release:
 
-* Concert stuff
-** play songs?
-* Downloading enhancements
-** add missing metadata to flac
 * Use home directory for config
 ** UI for configuring
+* Note downloaded concerts
 * Add actual help
+* Downloading enhancements
+** add missing metadata to flac
+* Concert stuff
+** play songs?
 * Better error handling
 ** when internet is off or download fails
 ** bad data from LMA
