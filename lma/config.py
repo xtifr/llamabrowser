@@ -50,7 +50,7 @@ class Config(object):
         return self.path("lma.db")
     def lossless_path(self):
         """Return the path where flac/shn files should go."""
-        return os.path.expanduser("~/pub/etree/new")
+        return os.path.expanduser("~/Download")
     def lossy_path(self):
         """Return the path where lossy files should go."""
         return os.path.expanduser("~/Music")

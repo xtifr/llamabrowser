@@ -3,6 +3,7 @@
 from . import database
 from . import query
 from . import progress
+from . import artist
 
 # temporary def used till we set up gettext
 _ = str
@@ -102,6 +103,10 @@ class Concert(database.DbRecord):
     def lmaid(self):
         return super(Concert, self).getDbInfo("concert", "lmaid", "cid")
 
+    @property
+    def artist(self):
+        return artist.Artist(super(Concert, self).getDbInfo("concert",
+                                                            "artistid", "cid"))
 class ConcertList(object):
     """Generic representation of a concert list."""
     def __init__(self, artist, progbar = progress.NullProgressBar):

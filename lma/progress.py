@@ -5,11 +5,11 @@
 # create a no-op callback for defaults.
 class NullProgressBar(object):
     """Provide these methods for UI progress bar wrappers."""
-    def __init__(self, title, msg, max):
+    def __init__(self, title, msg, max=100, can_cancel=False):
         pass
-    def update(self, percent):
-        pass
-    def done(self, max):
+    def update(self, percent, msg=None):
+        return True
+    def done(self, error=None):
         pass
 
 class ProgressCallback(object):
@@ -37,7 +37,7 @@ class ProgressCallback(object):
 
     def end(self):
         """Called when done reading records"""
-        self._dialog.done(100.0)
+        self._dialog.done()
 
     @property
     def frequency(self):

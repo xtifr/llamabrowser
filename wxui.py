@@ -22,16 +22,21 @@ DETAILS_BACK_BUTTON_ID = 22
 
 class WxProgressBar(object):
     """Provide progress bars for downloading."""
-    def __init__(self, title, msg, max):
-        self._dialog = wx.ProgressDialog(title, msg, maximum = max,
-                                         style = wx.PD_APP_MODAL
-                                         | wx.PD_AUTO_HIDE
-                                         | wx.PD_ELAPSED_TIME)
+    def __init__(self, title, msg, max=100, can_cancel=False):
+        style = wx.PD_APP_MODAL | wx.PD_ELAPSED_TIME | wx.PD_AUTO_HIDE
+        if can_cancel:
+            style = style | wx.PD_CAN_ABORT
+        self._dialog = wx.ProgressDialog(title, msg, maximum = max, style=style)
     def update(self, percent):
-        self._dialog.Update(percent)
+        """Update progress bar, maybe message, and return cancel status."""
+        ## This may have to change with wxwidgets 2.9
+        return self._dialog.Update(percent)
 
-    def done(self, max):
-        self._dialog.Update(max)
+    def done(self, error=None):
+        if error != None:
+            warn = wx.MessageDialog(self._dialog, error, style=wx.ICON_ERROR)
+            warn.ShowModal()
+            warn.Destroy()
         self._dialog.Destroy()
 
 #
@@ -39,9 +44,10 @@ class WxProgressBar(object):
 #
 class DownloadDialog(wx.Dialog):
     """Download songs.  Call run() method to use."""
-    def __init__(self, parent, id, songs):
+    def __init__(self, parent, id, songs, concert):
         self._path = lma.Config().lossless_path()
         self._songs = songs
+        self._concert = concert
         self._format = songs.LosslessFormat()
         self._subdir = True # default should be configurable!
 
@@ -119,7 +125,17 @@ class DownloadDialog(wx.Dialog):
     def run(self):
         """Shows self, and then tries to download if OK selected."""
         while self.ShowModal() == wx.ID_OK:
-            pass # insert download code here
+            artist = None
+            if self._subdir:
+                artist =self._concert.artist.name
+            to_get = []
+            for i in range(len(self._songs)):
+                if self._list.IsChecked(i):
+                    to_get.append(self._songs.getFormatFile(i, self._format))
+            if lma.download_files(to_get, self._concert, self._path,
+                                  artist, WxProgressBar):
+                break
+        self.Destroy()
 
     # event bindings
     def OnFormat(self, event):
@@ -470,7 +486,7 @@ class ConcertSongListWindow(wx.ListCtrl):
         popup.ShowModal()
         popup.Destroy()
     def download(self):
-        frame = DownloadDialog(self, -1, self._flist)
+        frame = DownloadDialog(self, -1, self._flist, self._concert)
         result = frame.run()
         frame.Destroy()
 

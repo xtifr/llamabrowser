@@ -15,6 +15,8 @@ are access through the ConcertFileList class."""
 
 __version__ = '0.1'
 
+from lma.config import (Config)
+
 from lma.archive import (archive_open, full_path)
 
 from lma.query import (Query, ProgressIter, IDENTIFIER, TITLE, COLLECTION,
@@ -27,14 +29,14 @@ from lma.database import (Db)
 
 from lma.artist import (download_artists, 
                         clear_new_artists, 
-                        ArtistList, 
+                        ArtistList, Artist,
                         AVIEW_SELECTORS)
 
 from lma.concert import (download_concerts,
                          clear_new_concerts,
-                         ConcertList,
+                         ConcertList, Concert,
                          CVIEW_SELECTORS)
 
 from lma.details import (ConcertDetails, ConcertFileList)
 
-from lma.config import (Config)
+from download import (download_files)
