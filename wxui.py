@@ -45,10 +45,11 @@ class ProgressBar(object):
 class DownloadDialog(wx.Dialog):
     """Download songs.  Call run() method to use."""
     def __init__(self, parent, id, songs, concert):
-        self._path = lma.Config().lossless_path()
+        cfg = lma.Config()
+        self._path = cfg.lossless_path
         self._songs = songs
         self._concert = concert
-        self._subdir = True # default should be configurable!
+        self._subdir = cfg.artist_subdir
 
         title = _(u"Download %s") % songs.concert.name
         super(DownloadDialog, self).__init__(parent, id, title)

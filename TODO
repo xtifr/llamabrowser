@@ -25,6 +25,7 @@ Little tasks:
 
 Longer term
 
+* Support non-unix systems?  (mostly config / storage issues)
 * Autoconvert shn to flac option
 * Hide artists/concerts (just not interested)
 * Discard concert lists for artists
