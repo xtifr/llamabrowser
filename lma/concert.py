@@ -35,8 +35,8 @@ def download_concerts(artist, progbar = lma.NullProgressBar):
 
     # create the progress bar callback
     callback = lma.ProgressCallback("Live Music Archive Download",
-                                         "Retrieve %s Concert List" % aname,
-                                         progbar)
+                                    "Retrieve %s Concert List" % aname,
+                                    progbar)
 
     # push the records into our database, with callback
     c.executemany("INSERT OR IGNORE INTO concert"
@@ -108,7 +108,7 @@ class Concert(lma.DbRecord):
     @property
     def artist(self):
         return lma.Artist(super(Concert, self).getDbInfo("concert",
-                                                            "artistid", "cid"))
+                                                         "artistid", "cid"))
 class ConcertList(object):
     """Generic representation of a concert list."""
     def __init__(self, artist, progbar = lma.NullProgressBar):
