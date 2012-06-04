@@ -1,4 +1,10 @@
 #!/usr/bin/env python
+# Part of the Live Music Archive access library (lma)
+#
+# This library is copyright 2012 by Chris Waters.
+# It is licensed under a liberal MIT/X11 style license;
+# see the file "LICENSE" in this directory for details.
+
 """Access to the Internet Archive: search engine and downloads."""
 
 import urllib2

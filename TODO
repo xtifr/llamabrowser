@@ -2,7 +2,7 @@ Some of these will obviously end up generating subtasks
 
 For initial release:
 
-* Note downloaded concerts
+* Remember downloaded concerts
 * Add actual help
 * Downloading enhancements
 ** add missing metadata to flac
@@ -11,15 +11,21 @@ For initial release:
 * Better error handling
 ** when internet is off or download fails
 ** bad data from LMA
+* heart icon for favorites?
 * Test suites
 * proper i18n support
-* Figure out and document licensing
 * Make distributable (distutils?)
 
 Little tasks:
 * Figure out how to handle nested songs (two directories deep)
 * Add taper, etc. to concert details
 * Add check for database version to protect against upgrades.
+* format vs song display
+** Reset format to lossy when done with download.
+** Show sizes and allow user to switch formats?
+*** if switched, use as default on download screen.
+* switch download directories when switching formats!
+* center data in some columns, e.g. favorites
 
 Longer term
 

@@ -1,6 +1,11 @@
 #
 # callback interface, for UIs
 #
+# Part of the Live Music Archive access library (lma)
+#
+# This library is copyright 2012 by Chris Waters.
+# It is licensed under a liberal MIT/X11 style license;
+# see the file "LICENSE" in this directory for details.
 
 # create a no-op callback for defaults.
 class NullProgressBar(object):

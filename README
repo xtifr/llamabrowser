@@ -1,6 +1,8 @@
 LMABrowser - A tool for browsing the 100,000+ free concert recordings
 hosted at the Internet Archive's Live Music Archive (LMA).
 
+Written by Chris Waters <xtifr.w@gmail.com>
+
 LMABrowser is written in Python.  It consists of a general purpose
 library, lma, which could potentially be used as the basis of a
 plug-in for other tools, and a simple graphical front end which allows
@@ -17,4 +19,7 @@ than Linux or (maybe) BSD, but that could change in a later release.
 Library Requirements: python 2.7 (and its bundled sqlite3 module).
 Front End Requirments: wxpython 2.8
 
-LMABrowser is written by Chris Waters <xtifr.w@gmail.com>
+The library is released under an MIT/X11 style license: see lma/LICENSE.
+The main program is released under the GPLv3 or better: see COPYING.
+
+My current to-do list is in TODO.

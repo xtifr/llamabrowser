@@ -1,3 +1,9 @@
+# The lma library provides access to the Internet Archive's Live Music Archive.
+#
+# This library is copyright 2012 by Chris Waters.
+# It is licensed under a liberal MIT/X11 style license;
+# see the file "LICENSE" in this directory for details.
+
 """Module for access to the Internet Archive's Live Music Archive.
 
 The download_artists() function gets new artist data from the Archive,

@@ -1,4 +1,10 @@
 #!/usr/bin/env python
+# Part of the Live Music Archive access library (lma)
+#
+# This library is copyright 2012 by Chris Waters.
+# It is licensed under a liberal MIT/X11 style license;
+# see the file "LICENSE" in this directory for details.
+
 """Local database access for LMA data.
 
 Assuming sqlite3 for now.  May allow other DBs for shared access in

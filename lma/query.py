@@ -1,4 +1,10 @@
 #!/usr/bin/env python
+# Part of the Live Music Archive access library (lma)
+#
+# This library is copyright 2012 by Chris Waters.
+# It is licensed under a liberal MIT/X11 style license;
+# see the file "LICENSE" in this directory for details.
+
 """Connect to and download records from the Live Music Archive.
 
 The Query class is used to construct queries, and will iterate through

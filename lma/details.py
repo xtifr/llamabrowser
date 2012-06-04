@@ -1,4 +1,10 @@
 #!/usr/bin/env python
+# Part of the Live Music Archive access library (lma)
+#
+# This library is copyright 2012 by Chris Waters.
+# It is licensed under a liberal MIT/X11 style license;
+# see the file "LICENSE" in this directory for details.
+
 """Manage concert details info from the Archive.
 
 Unlike artists and concerts, this doesn't use the Query class to load

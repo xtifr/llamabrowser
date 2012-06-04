@@ -1,4 +1,29 @@
 #!/usr/bin/env python
+#
+# lmabrowser - browse and download concerts from the Internet Archive's
+#               Live Music Archive (the LMA, aka "the llama").
+#
+#   copyright 2012 by Chris Waters <xtifr.w@gmail.com>
+#
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+"""GUI browser using the lma library to access the Live Music Archive.
+
+This is intended in part as a demo of the underlying lma library, which
+I hope to use to build add-ons for standalone music systems like
+Gnome's Rhythmbox and KDE's Amarok.  But it works well enough for now."""
+
 import lma
 import wx
 
