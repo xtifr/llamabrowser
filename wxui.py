@@ -258,6 +258,14 @@ class ArtistListCtrl(wx.ListCtrl):
         self.SetColumnWidth(1, 100)
         self.SetColumnWidth(2, 75)
 
+        # mark columns as centered
+        li = self.GetColumn(1)
+        li.SetAlign(wx.LIST_FORMAT_CENTER)
+        self.SetColumn(1, li)
+        li = self.GetColumn(2)
+        li.SetAlign(wx.LIST_FORMAT_CENTER)
+        self.SetColumn(2, li)
+
         self.reset()
 
     def reset(self):
@@ -360,6 +368,14 @@ class ConcertListCtrl(wx.ListCtrl):
         self.SetColumnWidth(0, 100)
         self.SetColumnWidth(1, 350)
         self.SetColumnWidth(2, 75)
+
+        # mark column as centered
+        li = self.GetColumn(0)
+        li.SetAlign(wx.LIST_FORMAT_CENTER)
+        self.SetColumn(0, li)
+        li = self.GetColumn(2)
+        li.SetAlign(wx.LIST_FORMAT_CENTER)
+        self.SetColumn(2, li)
 
     def reset(self):
         if self.clist != None:
@@ -563,6 +579,17 @@ class ConcertSongListWindow(wx.ListCtrl):
         self.SetColumnWidth(1, 350)
         self.SetColumnWidth(2, 80)
         self.SetColumnWidth(3, 80)
+
+        # mark columns as centered
+        li = self.GetColumn(0)
+        li.SetAlign(wx.LIST_FORMAT_CENTER)
+        self.SetColumn(0, li)
+        li = self.GetColumn(2)
+        li.SetAlign(wx.LIST_FORMAT_CENTER)
+        self.SetColumn(2, li)
+        li = self.GetColumn(3)
+        li.SetAlign(wx.LIST_FORMAT_CENTER)
+        self.SetColumn(3, li)
 
     def reset(self):
         if self._flist != None:
