@@ -159,8 +159,18 @@ class DownloadDialog(wx.Dialog):
     # event bindings
     def OnFormat(self, event):
         """Select the file format"""
-        self._songs.current_format = event.GetString()
+        format = event.GetString()
+        cfg = lma.Config()
+        self._songs.current_format = format
         self.showTotal()
+        # change dir to match
+        if (format == self._songs.LosslessFormat()):
+            if (self._path == cfg.download_path):
+                self._path = cfg.lossless_path
+        elif (self._path == cfg.lossless_path):
+            self._path = cfg.download_path
+        self._dir.SetPath(self._path)
+
     def OnDestPick(self, event):
         """Select Destination Directory"""
         self._path = event.GetString()

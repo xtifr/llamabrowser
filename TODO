@@ -24,7 +24,8 @@ Little tasks:
 ** Reset format to lossy when done with download.
 ** Show sizes and allow user to switch formats?
 *** if switched, use as default on download screen.
-* switch download directories when switching formats!
+* Make concert downloads interruptable!
+* Make concerts download to the right place!
 
 Longer term
 
