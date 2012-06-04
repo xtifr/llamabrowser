@@ -22,10 +22,10 @@ Little tasks:
 * Add check for database version to protect against upgrades.
 * format vs song display
 ** Reset format to lossy when done with download.
-** Show sizes and allow user to switch formats?
-*** if switched, use as default on download screen.
 * Make concert downloads interruptable!
 * Make concerts download to the right place!
+* Add a popup when we're downloading details.
+* Use heart (\u2665) for favorites?
 
 Longer term
 

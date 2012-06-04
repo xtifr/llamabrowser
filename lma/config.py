@@ -30,7 +30,7 @@ class Config(object):
     _data = {}
     @classmethod
     def cfile(Cls):
-        return os.path.join(Cls._dir, "Config")
+        return os.path.join(Cls._dir, "config")
 
     def __init__(self, datadir=None, create=False):
         """Return the singleton.  Must be initialized with a path.
@@ -84,22 +84,22 @@ class Config(object):
     @property
     def download_path(self):
         """Return the path where lossy files should go."""
-        return self.homepath(Config._data['download_dir'])
+        return self.homepath(Config._data['download_path'])
     @download_path.setter
     def download_path(self, f):
         f = self.striphome(f)
-        Config._data['download_dir'] = f
+        Config._data['download_path'] = f
     @property
     def lossless_path(self):
         """Return the path where flac/shn files should go (can be None)."""
-        if Config._data['lossless_dir']:
-            return self.homepath(Config._data['lossless_dir'])
+        if Config._data['lossless_path']:
+            return self.homepath(Config._data['lossless_path'])
         return self.download_path
     @lossless_path.setter
     def lossless_path(self, f):
         if f != None:
             f = self.striphome(f)
-        Config._data['lossless_dir'] = f
+        Config._data['lossless_path'] = f
     @property
     def artist_subdir(self):
         """Flag: use artist-name subdirectories?"""
@@ -107,6 +107,12 @@ class Config(object):
     @artist_subdir.setter
     def artist_subdir(self, b):
         Config._data['artist_subdir'] = bool(b)
+    @property
+    def preferred_format(self):
+        return Config._data['preferred_format']
+    @preferred_format.setter
+    def preferred_format(self, b):
+        Config._data['preferred_format'] = str(b)
     @property
     def shn_to_flac(self):
         """Auto-convert downloaded .shn files to .flac?"""
@@ -116,22 +122,29 @@ class Config(object):
         Config._data['shn_to_flac'] = bool(b)
 
     # methods to access the config file
+    def _getDefaults(self):
+        return  {
+            "download_path"    : "Music",
+            "lossless_path"    : None,
+            "artist_subdir"    : True,
+            "preferred_format" : 'lossless',
+            "shn_to_flac"      : False
+            }
     def makeConfig(self):
         """Set default configuration data"""
         if len(Config._data) == 0:
-            Config._data = {
-                "download_dir"  : "Music",
-                "lossless_dir"  : None,
-                "artist_subdir" : True,
-                "shn_to_flac"   : False }
+            Config._data = self._getDefaults()
     def read(self):
-        """Read default configuration."""
+        """Read saved configuration (merging in any new fields)."""
+        data = self._getDefaults()
+        # read saved values
         handle = open(self.cfgpath(Config.cfile()), "r")
         try:
-            data = cPickle.load(handle)
+            saved = cPickle.load(handle)
         finally:
             handle.close()
-        # version check would go here...
+        # merge saved values in over defaults.
+        data.update(saved)
         Config._data = data
     def write(self):
         """Write out configuration."""

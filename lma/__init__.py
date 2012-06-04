@@ -43,6 +43,6 @@ from lma.concert import (download_concerts,
                          ConcertList, Concert,
                          CVIEW_SELECTORS)
 
-from lma.details import (ConcertDetails, ConcertFileList)
+from lma.details import (ConcertDetails, ConcertFileList, default_formats)
 
 from download import (download_files)

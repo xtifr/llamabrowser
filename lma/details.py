@@ -39,6 +39,10 @@ FMT_64MP3 = "64kbps mp3"
 
 lossy_audio_formats = [FMT_OGG, FMT_MP3, FMT_64MP3 ]
 
+# this is used to choose the user's preferred default format
+# it's important that 'lossless' be listed first!
+default_formats = ['lossless'] + lossy_audio_formats
+
 # other assorted formats:
 FMT_JPG = "jpeg"
 FMT_PNG = "png"

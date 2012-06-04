@@ -71,10 +71,20 @@ class DownloadDialog(wx.Dialog):
     """Download songs.  Call run() method to use."""
     def __init__(self, parent, id, songs, concert):
         cfg = lma.Config()
-        self._path = cfg.lossless_path
         self._songs = songs
         self._concert = concert
         self._subdir = cfg.artist_subdir
+
+        formats = self._songs.formats
+        # check for the default format (lossless is first, and always works)
+        format_idx = 0
+        if cfg.preferred_format != lma.default_formats[format_idx]:
+            # see if we can find the preferred format
+            for i, fmt in enumerate(formats):
+                if fmt.lower() == cfg.preferred_format:
+                    format_idx = i
+                    break
+        self._songs.current_format = formats[format_idx]
 
         title = _(u"Download %s") % songs.concert.name
         super(DownloadDialog, self).__init__(parent, id, title)
@@ -87,31 +97,32 @@ class DownloadDialog(wx.Dialog):
         label = wx.StaticText(self, -1, _(u"Format: "))
         tmpsizer.Add(label, 0, wx.ALIGN_CENTER)
         self._choice = wx.Choice(self, -1, choices=self._songs.formats)
+        self._choice.SetSelection(format_idx)
         self.Bind(wx.EVT_CHOICE, self.OnFormat, self._choice)
         tmpsizer.Add(self._choice, 0, wx.ALIGN_CENTER)
 
         self._total = wx.StaticText(self, -1, "")
         tmpsizer.Add(self._total, 0, wx.ALIGN_CENTER|wx.LEFT, 5)
-
         sizer.Add(tmpsizer, 0, wx.LEFT, 5)
 
         # directory selection line
         tmpsizer = wx.BoxSizer(wx.HORIZONTAL)
-
         label = wx.StaticText(self, -1, _(u"Save in: "))
         tmpsizer.Add(label, 0, wx.ALIGN_CENTER)
-        self._dir = wx.DirPickerCtrl(self, -1)
-        self._dir.SetPath(self._path)
-        self.Bind(wx.EVT_DIRPICKER_CHANGED, self.OnDestPick, self._dir)
-        tmpsizer.Add(self._dir, 0, wx.ALIGN_CENTER)
 
+        self._dir = wx.DirPickerCtrl(self, -1)
+        # choose default path according to best available format
+        if format_idx > 0:
+            self._dir.SetPath(cfg.download_path)
+        else:
+            self._dir.SetPath(cfg.lossless_path)
+        tmpsizer.Add(self._dir, 0, wx.ALIGN_CENTER)
         sizer.Add(tmpsizer, 0, wx.LEFT, 5)
 
         # checkbox to create Artist subdirectory
         check = wx.CheckBox(self, -1, label=_(u"Use Artist Subdirectory?"))
         check.SetValue(self._subdir)
         self.Bind(wx.EVT_CHECKBOX, self.OnSubdir, check)
-
         sizer.Add(check, 0, wx.LEFT, 5)
 
         # now the main songlist
@@ -151,7 +162,7 @@ class DownloadDialog(wx.Dialog):
                 artist =self._concert.artist.name
             to_get = [song for i, song in enumerate(self._songs)
                       if self._list.IsChecked(i)]
-            if lma.download_files(to_get, self._concert, self._path,
+            if lma.download_files(to_get, self._concert, self._dir.GetPath(),
                                   artist, ProgressBar):
                 break
         self.Destroy()
@@ -165,15 +176,11 @@ class DownloadDialog(wx.Dialog):
         self.showTotal()
         # change dir to match
         if (format == self._songs.LosslessFormat()):
-            if (self._path == cfg.download_path):
-                self._path = cfg.lossless_path
-        elif (self._path == cfg.lossless_path):
-            self._path = cfg.download_path
-        self._dir.SetPath(self._path)
+            if (self._dir.GetPath() == cfg.download_path):
+                self._dir.SetPath(cfg.lossless_path)
+        elif (self._dir.GetPath() == cfg.lossless_path):
+            self._dir.SetPath(cfg.download_path)
 
-    def OnDestPick(self, event):
-        """Select Destination Directory"""
-        self._path = event.GetString()
     def OnSubdir(self, event):
         self._subdir = event.IsChecked()
     def OnSongChecked(self, event):
@@ -192,16 +199,17 @@ class ConfigurationDialog(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
         tmpsizer = wx.BoxSizer(wx.HORIZONTAL)
 
+        # main download directory
         label = wx.StaticText(self, -1, _(u"Default download directory: "))
         tmpsizer.Add(label, 0, wx.ALIGN_CENTER)
         self.dlpick = wx.DirPickerCtrl(self, -1)
         self.dlpick.SetPath(cfg.download_path)
         self.Bind(wx.EVT_DIRPICKER_CHANGED, self.OnDownloadPick, self.dlpick)
         tmpsizer.Add(self.dlpick, 0, wx.ALIGN_CENTER)
-
         sizer.Add(tmpsizer, 0, wx.ALL, 5)
-        tmpsizer = wx.BoxSizer(wx.HORIZONTAL)
 
+        # optional extra directory for lossless downloads
+        tmpsizer = wx.BoxSizer(wx.HORIZONTAL)
         label = wx.StaticText(self, -1, _(u"Lossless directory (optional): "))
         tmpsizer.Add(label, 0, wx.ALIGN_CENTER)
         self.llpick = wx.DirPickerCtrl(self, -1)
@@ -215,18 +223,31 @@ class ConfigurationDialog(wx.Dialog):
             self.llpick.Enable(False)
         self.Bind(wx.EVT_CHECKBOX, self.OnLosslessCheck, self.llcheck)
         tmpsizer.Add(self.llcheck, 0, wx.ALIGN_CENTER)
-
         sizer.Add(tmpsizer, 0, wx.ALL, 5)
-        tmpsizer = wx.BoxSizer(wx.HORIZONTAL
-)
+
+        # use artist subdirectory?
+        tmpsizer = wx.BoxSizer(wx.HORIZONTAL)
         check = wx.CheckBox(self, -1,
                             _(u"Put concert folder in separate artist folder?"))
         if cfg.artist_subdir:
             check.SetValue(True)
         self.Bind(wx.EVT_CHECKBOX, self.OnArtistCheck, check)
         tmpsizer.Add(check, 0)
-
         sizer.Add(tmpsizer, 0, wx.ALL, 5)
+
+        # preferred format
+        tmpsizer = wx.BoxSizer(wx.HORIZONTAL)
+        label = wx.StaticText(self, -1,
+                              _(u"Preferred (default) format to download: "))
+        tmpsizer.Add(label, 0, wx.ALIGN_CENTER)
+        self._choice = wx.Choice(self, -1, choices=lma.default_formats)
+        for i,fmt in enumerate(lma.default_formats):
+            if fmt == cfg.preferred_format:
+                self._choice.SetSelection(i)
+        self.Bind(wx.EVT_CHOICE, self.OnFormatChoice, self._choice)
+        tmpsizer.Add(self._choice, 0, wx.ALIGN_CENTER)
+        sizer.Add(tmpsizer, 0, wx.ALL, 5)
+
         bsizer = self.CreateButtonSizer(wx.OK|wx.CANCEL)
         if bsizer != None:
             sizer.Add(bsizer, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
@@ -244,10 +265,12 @@ class ConfigurationDialog(wx.Dialog):
         self.llpick.Enable(self.llcheck.GetValue())
         if not self.llcheck.GetValue():
             self.llpick.SetPath(cfg.download_path)
-            cfg.lossless_path = None
     def OnArtistCheck(self, event):
         cfg = lma.Config()
         cfg.artist_subdir = bool(event.GetInt())
+    def OnFormatChoice(self, event):
+        cfg = lma.Config()
+        cfg.preferred_format = event.GetString()
 
 #
 # artist listings
