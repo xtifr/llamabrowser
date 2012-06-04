@@ -467,7 +467,7 @@ class ConcertListCtrl(wx.ListCtrl):
             return self.clist[row].name
         elif column == 2:
             if self.clist[row].favorite:
-                return "\u2665" # unicode heart
+                return u"\u2665" # unicode heart
             return ""
 
 class ConcertListPanel(wx.Panel):
