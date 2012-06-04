@@ -46,6 +46,7 @@ class Config(object):
             self.read()
         except IOError:
             self.makeConfig()
+            self.write()
 
     # access methods
     def cfgpath(self, f):
@@ -121,7 +122,7 @@ class Config(object):
         """Read default configuration."""
         handle = open(self.cfgpath(Config.cfile()), "r")
         try:
-            data = cPicke.load(handle)
+            data = cPickle.load(handle)
         finally:
             handle.close()
         # version check would go here...

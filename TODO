@@ -2,10 +2,7 @@ Some of these will obviously end up generating subtasks
 
 For initial release:
 
-* Use home directory for config
-** UI for configuring
 * Note downloaded concerts
-* Artist details (to match concert details)
 * Add actual help
 * Downloading enhancements
 ** add missing metadata to flac
@@ -17,6 +14,7 @@ For initial release:
 * Test suites
 * proper i18n support
 * Figure out and document licensing
+* Make distributable (distutils?)
 
 Little tasks:
 * Figure out how to handle nested songs (two directories deep)
@@ -26,6 +24,7 @@ Little tasks:
 Longer term
 
 * Support non-unix systems?  (mostly config / storage issues)
+* Artist details (to match concert details)
 * Autoconvert shn to flac option
 * Hide artists/concerts (just not interested)
 * Discard concert lists for artists

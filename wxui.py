@@ -101,7 +101,7 @@ class DownloadDialog(wx.Dialog):
 
         bsizer = self.CreateButtonSizer(wx.OK|wx.CANCEL)
         if bsizer != None:
-            sizer.Add(bsizer, 0, wx.ALIGN_RIGHT)
+            sizer.Add(bsizer, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
 
         self.showTotal()
         self.SetSizer(sizer)
@@ -146,9 +146,77 @@ class DownloadDialog(wx.Dialog):
         self.showTotal()
 
 #
+# Configuration
+#
+class ConfigurationDialog(wx.Dialog):
+    """Set configuration items."""
+    def __init__(self, parent, id):
+        super(ConfigurationDialog, self).__init__(parent, id,
+                                                  _(u"Configuration"))
+        cfg = lma.Config()
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        tmpsizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        label = wx.StaticText(self, -1, _(u"Default download directory: "))
+        tmpsizer.Add(label, 0, wx.ALIGN_CENTER)
+        self.dlpick = wx.DirPickerCtrl(self, -1)
+        self.dlpick.SetPath(cfg.download_path)
+        self.Bind(wx.EVT_DIRPICKER_CHANGED, self.OnDownloadPick, self.dlpick)
+        tmpsizer.Add(self.dlpick, 0, wx.ALIGN_CENTER)
+
+        sizer.Add(tmpsizer, 0, wx.ALL, 5)
+        tmpsizer = wx.BoxSizer(wx.HORIZONTAL)
+
+        label = wx.StaticText(self, -1, _(u"Lossless directory (optional): "))
+        tmpsizer.Add(label, 0, wx.ALIGN_CENTER)
+        self.llpick = wx.DirPickerCtrl(self, -1)
+        self.llpick.SetPath(cfg.lossless_path)
+        self.Bind(wx.EVT_DIRPICKER_CHANGED, self.OnLosslessPick, self.llpick)
+        tmpsizer.Add(self.llpick, 0, wx.ALIGN_CENTER)
+        self.llcheck = wx.CheckBox(self, -1)
+        if cfg.download_path != cfg.lossless_path:
+            self.llcheck.SetValue(True)
+        else:
+            self.llpick.Enable(False)
+        self.Bind(wx.EVT_CHECKBOX, self.OnLosslessCheck, self.llcheck)
+        tmpsizer.Add(self.llcheck, 0, wx.ALIGN_CENTER)
+
+        sizer.Add(tmpsizer, 0, wx.ALL, 5)
+        tmpsizer = wx.BoxSizer(wx.HORIZONTAL
+)
+        check = wx.CheckBox(self, -1,
+                            _(u"Put concert folder in separate artist folder?"))
+        if cfg.artist_subdir:
+            check.SetValue(True)
+        self.Bind(wx.EVT_CHECKBOX, self.OnArtistCheck, check)
+        tmpsizer.Add(check, 0)
+
+        sizer.Add(tmpsizer, 0, wx.ALL, 5)
+        bsizer = self.CreateButtonSizer(wx.OK|wx.CANCEL)
+        if bsizer != None:
+            sizer.Add(bsizer, 0, wx.ALIGN_RIGHT|wx.ALL, 5)
+        self.SetSizer(sizer)
+
+    # event bindings
+    def OnDownloadPick(self, event):
+        cfg = lma.Config()
+        cfg.download_path = self.dlpick.GetPath()
+    def OnLosslessPick(self, event):
+        cfg = lma.Config()
+        cfg.lossless_path = self.llpick.GetPath()
+    def OnLosslessCheck(self, event):
+        cfg = lma.Config()
+        self.llpick.Enable(self.llcheck.GetValue())
+        if not self.llcheck.GetValue():
+            self.llpick.SetPath(cfg.download_path)
+            cfg.lossless_path = None
+    def OnArtistCheck(self, event):
+        cfg = lma.Config()
+        cfg.artist_subdir = bool(event.GetInt())
+
+#
 # artist listings
 #
-
 class ArtistListCtrl(wx.ListCtrl):
     """List box for artists."""
     def __init__(self, parent, id=-1, 
@@ -601,6 +669,11 @@ class LMAFrame(wx.Frame):
         self._fileMenu.Append(wx.ID_EXIT, _(u"&Quit"), _(u"Exit program"))
         menubar.Append(self._fileMenu, _(u"&File"))
 
+        # edit menu
+        self._editMenu = wx.Menu()
+        self._editMenu.Append(201, _(u"Preferences"), _(u"Set preferences"))
+        menubar.Append(self._editMenu, _(u"Edit"))
+
         # help menu
         self._helpMenu = wx.Menu()
         self._helpMenu.Append(wx.ID_ABOUT, _(u"&About"), _(u"About LMABrowser"))
@@ -612,6 +685,8 @@ class LMAFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.menuFetch, id=101)
         self.Bind(wx.EVT_MENU, self.menuClearNew, id=102)
         self.Bind(wx.EVT_MENU, self.menuFavorite, id=103)
+
+        self.Bind(wx.EVT_MENU, self.menuPreferences, id=201)
 
         self.Bind(wx.EVT_MENU, self.menuQuit, id=wx.ID_EXIT)
         self.Bind(wx.EVT_MENU, self.menuAbout, id=wx.ID_ABOUT)
@@ -663,6 +738,15 @@ class LMAFrame(wx.Frame):
         self._panel.toggleFavorite()
     def menuQuit(self, event):
         self.Close()
+
+    def menuPreferences(self, event):
+        cfg = lma.Config()
+        win = ConfigurationDialog(self, -1)
+        if win.ShowModal() == wx.ID_OK:
+            cfg.write()
+        else:
+            cfg.read()
+        win.Destroy()
 
     def menuAbout(self, event):
         """Create and display 'About' window."""
