@@ -54,8 +54,10 @@ class ProgressBar(object):
         self._dialog = wx.ProgressDialog(title, msg, maximum = max, style=style)
     def update(self, percent):
         """Update progress bar, maybe message, and return cancel status."""
-        ## This may have to change with wxwidgets 2.9
-        return self._dialog.Update(percent)
+        result = self._dialog.Update(percent)
+        if type(result) == tuple:
+            return result[0]
+        return result
 
     def done(self, error=None):
         if error != None:
