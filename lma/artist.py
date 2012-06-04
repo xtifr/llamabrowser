@@ -6,9 +6,7 @@
 # see the file "LICENSE" in this directory for details.
 
 import time
-from . import database
-from . import query
-from . import progress
+import lma
 
 # temporary def used till we set up gettext
 _ = str
@@ -17,28 +15,28 @@ _ = str
 # Artist database access
 #
 
-def download_artists(progbar = progress.NullProgressBar):
+def download_artists(progbar = lma.NullProgressBar):
     """Download artist records from LMA."""
     # get the last update date
-    db = database.Db()
+    db = lma.Db()
     c = db.cursor()
     c.execute("SELECT last_artist_read from lma_config where recnum = 1");
     lastdate = c.fetchone()[0]
 
     # form the archive query (including lastdate)
-    aquery = query.Query(query.BAND_QUERY)
-    aquery.add_fields(query.STANDARD_FIELDS)
-    aquery.add_sort(query.PUBDATE)
+    aquery = lma.Query(lma.BAND_QUERY)
+    aquery.add_fields(lma.STANDARD_FIELDS)
+    aquery.add_sort(lma.PUBDATE)
     aquery.newer_than(lastdate)
 
     # create the progress bar callback
-    callback = progress.ProgressCallback("Live Music Archive Download",
-                                         "Retrieve Artists from LMA", progbar)
+    callback = lma.ProgressCallback("Live Music Archive Download",
+                                    "Retrieve Artists from LMA", progbar)
 
     # push the records into our database, with callback
     c.executemany("INSERT OR IGNORE INTO artist (aname, lmaid)"
                   "  VALUES (:title, :identifier)",
-                   query.ProgressIter(aquery, callback))
+                   lma.ProgressIter(aquery, callback))
 
     # now update the last-updated field
     c.execute("UPDATE lma_config SET last_artist_read = date('now')"
@@ -57,7 +55,7 @@ def download_artists(progbar = progress.NullProgressBar):
 #
 def clear_new_artists():
     """Clear the new artist list."""
-    db = database.Db()
+    db = lma.Db()
     db.execute("DELETE FROM newartist")
     db.commit()
 
@@ -75,7 +73,7 @@ AVIEW_SELECTORS = [AVIEW_ALL, AVIEW_FAVORITES, AVIEW_BROWSED, AVIEW_NEW]
 #
 # db wrapper for an artist ID
 #
-class Artist(database.DbRecord):
+class Artist(lma.DbRecord):
     """Object to wrap an artist ID and calculate various attributes."""
     def __init__(self, artist):
         super(Artist, self).__init__(artist)
@@ -94,7 +92,7 @@ class Artist(database.DbRecord):
 
 class ArtistList(object):
     """Generic representation of artist list."""
-    def __init__(self, progbar = progress.NullProgressBar):
+    def __init__(self, progbar = lma.NullProgressBar):
         self._progbar = progbar
         self._mode = AVIEW_ALL
         self._search = None
@@ -118,7 +116,7 @@ class ArtistList(object):
             like = "WHERE a.aname LIKE '%%%s%%'" % self.search
 
         # now call select using the appropriate join
-        db = database.Db()
+        db = lma.Db()
         c = db.cursor()
         c.execute("SELECT a.aid FROM artist AS a %s %s "
                   "  ORDER BY a.aname" % (joinon, like))

@@ -5,10 +5,6 @@ For initial release:
 * Remember downloaded concerts
 * Add actual help
 * Add tooltips
-* Downloading enhancements
-** add missing metadata to flac
-* Concert stuff
-** play songs?
 * Better error handling
 ** when internet is off or download fails
 ** bad data from LMA
@@ -18,13 +14,16 @@ For initial release:
 Little tasks:
 * Figure out how to handle nested songs (two directories deep)
 * Add taper, etc. to concert details
-* Add check for database version to protect against upgrades.
 * Add a popup when we're downloading details.
 * Notify user if there's nothing to download.
 * heart icon on main page for favorites?
 
 Longer term
 
+* Downloading enhancements
+** add missing metadata to flac
+* Concert stuff
+** play songs?
 * Support non-unix systems?  (mostly config / storage issues)
 * proper i18n support
 * Artist details (to match concert details)
@@ -37,8 +36,10 @@ Longer term
 * Limit viewing artists by starting letter
 * Limit viewing concerts by year
 * Cache songnames
-* Edit songnames (metadata)
-** Update downloaded files
+** Edit songnames (metadata)
+*** Update downloaded files
+* Add check for database version to allow upgrades.
+* Option to backup database
 * Remove redundant artist name from concert name in concert list
 * (Option): ignore leading "The" and "A" when sorting artists.
 * Allow user to define arbitrary tags (similar to the favorites flag)

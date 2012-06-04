@@ -10,9 +10,7 @@
 import os
 import hashlib # for md5
 
-from . import archive
-from . import progress
-from . import details
+import lma
 
 # quick hack till we set up gettext
 _ = str
@@ -27,7 +25,7 @@ BUFFER_SIZE = 8192 # this may be too small, but we'll try it
 # main download function
 #
 def download_files(songlist, concert, targetdir, artist=None,
-                   callback=progress.NullProgressBar):
+                   callback=lma.NullProgressBar):
     """Download songs to given directory (or subdir if artist specified)."""
 
     # make sure target directory exists
@@ -70,7 +68,7 @@ def download_one_file(concert, song, targetdir, callback):
     downloaded = 0
     chksum = hashlib.md5()
     path = "%s/%s" % (concert.lmaid, song['name'])
-    rhand = archive.archive_open(path)
+    rhand = lma.archive_open(path)
     lhand = open(filename, "wb")
     try:
         data = rhand.read(BUFFER_SIZE)

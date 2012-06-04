@@ -25,13 +25,13 @@ from lma.config import (Config)
 
 from lma.archive import (archive_open, full_path)
 
+from lma.progress import (ProgressCallback, NullProgressBar)
+
 from lma.query import (Query, ProgressIter, IDENTIFIER, TITLE, COLLECTION,
                        MEDIATYPE, PUBDATE, DATE, YEAR, FORMAT,
                        BAND_QUERY, CONCERT_QUERY, STANDARD_FIELDS)
 
-from lma.progress import (ProgressCallback, NullProgressBar)
-
-from lma.database import (Db)
+from lma.database import (Db, DbRecord)
 
 from lma.artist import (download_artists, 
                         clear_new_artists, 

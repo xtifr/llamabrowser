@@ -5,10 +5,7 @@
 # It is licensed under a liberal MIT/X11 style license;
 # see the file "LICENSE" in this directory for details.
 
-from . import database
-from . import query
-from . import progress
-from . import artist
+import lma
 
 # temporary def used till we set up gettext
 _ = str
@@ -17,10 +14,10 @@ _ = str
 # Concert database access
 #
 
-def download_concerts(artist, progbar = progress.NullProgressBar):
+def download_concerts(artist, progbar = lma.NullProgressBar):
     """Download concert records for given artist from LMA."""
     artist = str(int(artist)) # make sure we have an integer
-    db = database.Db()
+    db = lma.Db()
 
     # get the last update date
     c = db.cursor()
@@ -30,14 +27,14 @@ def download_concerts(artist, progbar = progress.NullProgressBar):
     lmaid, aname, lastdate = c.fetchone()
 
     # form the archive query (including lastdate)
-    cquery = query.Query(query.CONCERT_QUERY(lmaid))
-    cquery.add_fields(query.STANDARD_FIELDS)
-    cquery.add_fields([query.DATE, query.YEAR])
-    cquery.add_sort(query.PUBDATE)
+    cquery = lma.Query(lma.CONCERT_QUERY(lmaid))
+    cquery.add_fields(lma.STANDARD_FIELDS)
+    cquery.add_fields([lma.DATE, lma.YEAR])
+    cquery.add_sort(lma.PUBDATE)
     cquery.newer_than(lastdate)
 
     # create the progress bar callback
-    callback = progress.ProgressCallback("Live Music Archive Download",
+    callback = lma.ProgressCallback("Live Music Archive Download",
                                          "Retrieve %s Concert List" % aname,
                                          progbar)
 
@@ -45,7 +42,7 @@ def download_concerts(artist, progbar = progress.NullProgressBar):
     c.executemany("INSERT OR IGNORE INTO concert"
                   " (ctitle, lmaid, cyear, cdate, artistid) VALUES"
                   "  (:title, :identifier, :year, date(:date), %s)" % artist,
-                  query.ProgressIter(cquery, callback))
+                  lma.ProgressIter(cquery, callback))
 
     # now update the artist's last-updated field
     c.execute("INSERT OR REPLACE INTO lastbrowse (aid, browsedate)"
@@ -66,7 +63,7 @@ def download_concerts(artist, progbar = progress.NullProgressBar):
 def clear_new_concerts(artist):
     """Clear an artist's new concert list."""
     artist = str(int(artist))
-    db = database.Db()
+    db = lma.Db()
     c = db.cursor()
     c.execute("DELETE FROM newconcert WHERE cid IN "
                "  (SELECT cid FROM concert WHERE artistid = ?)", (artist,))
@@ -87,7 +84,7 @@ CVIEW_SELECTORS = [CVIEW_ALL, CVIEW_FAVORITES, CVIEW_NEW]
 # db wrapper for a concert id
 #
 
-class Concert(database.DbRecord):
+class Concert(lma.DbRecord):
     """Object to wrap a concert ID and calculate various attributes."""
     def __init__(self, concert):
         super(Concert, self).__init__(concert)
@@ -110,11 +107,11 @@ class Concert(database.DbRecord):
 
     @property
     def artist(self):
-        return artist.Artist(super(Concert, self).getDbInfo("concert",
+        return lma.Artist(super(Concert, self).getDbInfo("concert",
                                                             "artistid", "cid"))
 class ConcertList(object):
     """Generic representation of a concert list."""
-    def __init__(self, artist, progbar = progress.NullProgressBar):
+    def __init__(self, artist, progbar = lma.NullProgressBar):
         self._artist = artist
         self._progbar = progbar
         self._mode = CVIEW_ALL
@@ -124,7 +121,7 @@ class ConcertList(object):
     def refresh(self):
         """Set up to access the DB according to the current mode."""
 
-        db = database.Db()
+        db = lma.Db()
         c = db.cursor()
 
         # get the name and id

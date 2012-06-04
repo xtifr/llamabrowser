@@ -14,8 +14,7 @@ The ProgressIter class allows hooking a UI callback into a Query."""
 
 import time
 import urllib2
-from . import archive
-from . import progress
+import lma
 
 # main fields we'll want to use
 # (if you add/remove any, don't forget to fix import list in __init__.py)
@@ -73,7 +72,7 @@ class Result (object):
     def read_page(self):
         """Read the next page of data from the Archive. (Internal)"""
         
-        hand = archive.archive_open(self.make_json_url(), search=True)
+        hand = lma.archive_open(self.make_json_url(), search=True)
         try:
             data = hand.read()
         finally:

@@ -11,7 +11,8 @@ Assuming sqlite3 for now.  May allow other DBs for shared access in
 future versions."""
 import os
 import sqlite3
-from . import config
+
+import lma
 #
 # TODO: expand this to use the appropriate config directory & stuff
 _db_name = "lma.db"
@@ -23,7 +24,7 @@ class Db(object):
     def __init__(self):
         """make sure db is open."""
         if Db._db == None:
-            fname = config.Config().dbpath()
+            fname = lma.Config().dbpath()
             # if there's no db there, we'll also have to populate it.
             found = os.path.exists(fname)
             Db._db = sqlite3.connect(fname)

@@ -14,9 +14,8 @@ import os
 import xml.sax
 import xml.sax.handler as xmlhandler
 import hashlib # for md5/sha1
-from . import database
-from . import archive
-from . import concert
+
+import lma
 
 # define audio formats:
 
@@ -89,7 +88,7 @@ def get_meta_data(lmaid):
     """Get the _meta.xml file with the concert description."""
     # relative path is concertid/concertid_meta.xml
     reader = MetaXMLHandler()
-    hand = archive.archive_open("%s/%s_meta.xml" % (lmaid, lmaid))
+    hand = lma.archive_open("%s/%s_meta.xml" % (lmaid, lmaid))
     try:
         xml.sax.parse(hand, reader)
     finally:
@@ -147,7 +146,7 @@ def get_filelist_data(lmaid):
     """Get the _files.xml file with the song listing."""
     # relative path is concertid/concertid_files.xml
     reader = FileXMLHandler()
-    hand = archive.archive_open("%s/%s_files.xml" % (lmaid, lmaid))
+    hand = lma.archive_open("%s/%s_files.xml" % (lmaid, lmaid))
     try:
         xml.sax.parse(hand, reader)
     finally:
@@ -252,7 +251,7 @@ class ConcertDetails(object):
         """Write the details to the cache if necessary."""
         if self._saved == True:
             return
-        db = database.Db()
+        db = lma.Db()
         c = db.cursor()
         # make text versions of field list, with and without colons
         f1 = ",".join(meta_fields)
@@ -267,7 +266,7 @@ class ConcertDetails(object):
     def loadFromCache(self):
         """Try to get concert details from db.  If not there, return None."""
 
-        db = database.Db()
+        db = lma.Db()
         c = db.cursor()
         f1 = ",".join(meta_fields)
         c.execute("SELECT %s FROM details WHERE cid = ?" % f1,
