@@ -4,6 +4,7 @@ For initial release:
 
 * Remember downloaded concerts
 * Add actual help
+* Add tooltips
 * Downloading enhancements
 ** add missing metadata to flac
 * Concert stuff
@@ -13,23 +14,21 @@ For initial release:
 ** bad data from LMA
 * heart icon for favorites?
 * Test suites
-* proper i18n support
 * Make distributable (distutils?)
 
 Little tasks:
 * Figure out how to handle nested songs (two directories deep)
 * Add taper, etc. to concert details
 * Add check for database version to protect against upgrades.
-* format vs song display
-** Reset format to lossy when done with download.
 * Make concert downloads interruptable!
-* Make concerts download to the right place!
 * Add a popup when we're downloading details.
+* Notify user if there's nothing to download.
 * Use heart (\u2665) for favorites?
 
 Longer term
 
 * Support non-unix systems?  (mostly config / storage issues)
+* proper i18n support
 * Artist details (to match concert details)
 * Autoconvert shn to flac option
 * Hide artists/concerts (just not interested)

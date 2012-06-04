@@ -329,7 +329,7 @@ class ArtistListCtrl(wx.ListCtrl):
             return self.alist[item].browsedate
         elif column == 2:
             if self.alist[item].favorite:
-                return "Y"
+                return u"\u2665"
             return ""
 
 class ArtistListPanel(wx.Panel):
@@ -467,7 +467,7 @@ class ConcertListCtrl(wx.ListCtrl):
             return self.clist[row].name
         elif column == 2:
             if self.clist[row].favorite:
-                return "Y"
+                return "\u2665"
             return ""
 
 class ConcertListPanel(wx.Panel):
