@@ -101,7 +101,6 @@ INSERT INTO lma_config (recnum, version, last_artist_read)
 COMMIT;
 
 -- drop in reverse order of creation to avoid foreign-key problems
-DROP TABLE IF EXISTS song;
 DROP TABLE IF EXISTS concert;
 DROP TABLE IF EXISTS lastbrowse;
 DROP TABLE IF EXISTS favorite;
@@ -170,12 +169,4 @@ CREATE TABLE details (
     lineage     TEXT,
     description TEXT,
     notes       TEXT
-);
-
--- song table
-CREATE TABLE song (
-    sid        INTEGER UNIQUE PRIMARY KEY,
-    sname      VARCHAR(100) NOT NULL,
-    base_fname VARCHAR(100) NOT NULL,  -- base filename (without extension)
-    concertid  INTEGER REFERENCES concert(cid)
 );""")
