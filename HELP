@@ -1,0 +1,130 @@
+A quick introduction to LMABrowser.
+
+The program has three main screens:
+
+1) The Artist List screen, which shows the available artists,
+2) The Concert List screen, which shows the concerts for an artist,
+3) The Concert Details screen, which shows you songs and lets you download.
+
+* Starting/The Artist List:
+
+When you first start the program you should see an empty Artist List
+screen.  You'll need to download the artists from the Internet
+Archive.  Click on 'File->Download'.  This may take a few moments, as
+the Archive has over 5,000 artists.  Once it's done, you should see
+all the available artists.
+
+** Preferences:
+
+At some point, before you start trying to dowload any concerts, you will
+want to click on "Edit->Preferences" to set your preferences, including
+the default folder to save downloaded music in.  More on this later.
+
+** Searching Artists:
+
+In the upper left, you should see a search box.  You can enter an
+artist's name (or part of a name), and press enter to limit the
+display to just the artists that match your search.  For example,
+typing "smash" should limit the display so that you can see "The
+Smashing Pumpkins", or "zevon" will show you "Warren Zevon".
+
+** Limiting the Display:
+
+In the upper right, you should see a selection box with the folowing options:
+1) All Artists -- show all available artists (limited by your current search).
+2) Favorites -- just show artists you've marked as a favorite.
+3) With Concerts - artists whose concert list you've downloaded.
+3) New Artists -- artists downloaded since your initial download or since
+   the last time you clicked on "File->Clear New".
+
+At the moment, choosing any of these will show you an empty list, but
+eventually this selector should be very useful.
+
+** Selecting an Artist:
+
+Once you find an artist you're interested in, double-click on their
+name, and you'll go to the second screen, the Concert List screen.
+
+* The Concert List
+
+This is very similar to the Artist List, except for the "Back" button
+in the lower left, which will take you back to the Artist list.
+
+Again, this screen will be empty until you click "File->Download", just
+like the Artist List screen.  It also has a search button in the upper
+left, and a selection widget in the upper right.  It should all look
+fairly familiar if you looked at the previous screen.
+
+** Favorites
+
+You now have an opportunity to mark an artist as a favorite.  If the
+artist whose concerts you are looking at is one of your favorites,
+click on "File->Mark Favorite".  To reverse this, click on it again.
+A pop-up will tell you whether you have marked or cleared the status.
+Once you go back to the Artist List screen, you will be able to find
+this artist again easily by selecting "Favorites" with the selection
+widget in the upper left.
+
+** Searching / limiting the display:
+
+Works just like it did on the Artist List screen.
+
+** Selecting a concert:
+
+Again, double-click on the concert you're interested it.  This will
+automatically download concert details, so make sure you're online
+before attempting it.
+
+* The Concert Details:
+
+This is the third and final main screen of the program.  Here you will
+see a notebook with two tabs.  One, "Details", shows descriptive text
+about the concert, while the other, "Songs", shows a list of songs,
+with the lossless format (Flac or Shorten) and whether lossy formats
+(Ogg Vorbis & MP3) are available.
+
+** Favorites
+
+Again, you can mark this concert as one of your favorites by clicking
+"File->Mark Favorite".
+
+** Downloading Concerts
+
+Simple: click on "File->Download", and you will go to the download screen
+where you can choose the format, the download directory, and (if you want)
+deselect individual songs.  The format is important!  By default (unless
+you changed your preferences), you will be downloading lossless files
+(Flac or Shorten).  These are big!  If you want lossy files like Ogg Vorbis
+or MP3, choose that format!  The download screen will show you the total
+size of all the files you'll be downloading.
+
+Note that some concerts won't have lossy formats available.  In that case,
+your only option is to download the lossless files, and convert them
+yourself, if you want, or to choose another concert.
+
+One potentially confusing bit is the "Artist Subdirectory" checkbox,
+which is selected by default.  See the explanation of the Preferences
+Screen below for details.
+
+* Preferences Screen:
+
+You can get here from anywhere by clicking "Edit->Preferences".  This
+is where you can set the default download directory.  You can also set
+a different default directory for lossless files, if you don't want
+those to go into your regular music player's directory.  You can also
+choose your preferred download format: either "lossless" (which will
+depend on the files available), or one of Ogg Vorbis (best), VBR MP3
+(medium), or 64KMP3 (low quality, but small).
+
+You can also choose whether to use an Artist Subdirectory for your
+downloads.  If you turn this off, all concerts from all artists will
+be stored in sibling folders.  If you leave it on, each concert folder
+will go into a folder named for the artist.
+
+on:  /home/xtifr/Music/Fishbone/fishbone1999-05-14/{music files}
+     /home/xtifr/Music/Radiators/rad1997-04-12/{music files}
+                                /rad2005-07-31/{music files}
+
+off: /home/xtifr/Music/fishbone199-05-14/{music files}
+     /home/xtifr/Music/rad1997-04-12/{music files}
+                      /rad2005-07-31/{music files}

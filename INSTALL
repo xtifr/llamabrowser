@@ -1,0 +1,22 @@
+Yeah, this is still too beta to have proper install instructions.
+You can just change to the source directory and run './lmabrowser'.
+It Works For Me(tm).  :)
+
+Running lmabrowser will create a .LMABrowser directory in your home
+directory, which will contain 'lma.db' (the sqlite3 database) and
+'config', a small configuration file.  Knowing this will allow you to
+poke around in the database, as well as to clean up if you decide you
+hate the program.
+
+The ambitious should note that there are three main components:
+1) the 'lma' python package (the 'lma' subdir), which does the work.
+2) the 'wxui.py' python module.
+3) the (nearly empty) 'lmabrowser' script.
+
+If you really want to try a "proper" install, you can put the first
+two anywhere in your python search path, and the last somewhere in
+your binary search path, and it should work.  But note that the
+'wxui.py' module, at least, may be renamed, as the current name isn't
+very expressive.
+
+Eventually, I'll package all this up properly.

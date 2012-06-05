@@ -1,5 +1,7 @@
-LMABrowser - A tool for browsing the 100,000+ free concert recordings
-hosted at the Internet Archive's Live Music Archive (LMA).
+LMABrowser - A tool for browsing & downloading the 100,000+ free
+concert recordings at the Internet Archive's Live Music Archive (LMA).
+
+This is barely beta code.  It works for me, though(tm). :)
 
 Written by Chris Waters <xtifr.w@gmail.com>
 
@@ -16,10 +18,12 @@ The graphical front end uses the WxWidgets toolkit for (potential)
 portability.  At present, it is unlikely to work on any system other
 than Linux or (maybe) BSD, but that could change in a later release.
 
-Library Requirements: python 2.7 (and its bundled sqlite3 module).
-Front End Requirments: wxpython 2.8
+Requirements: python 2.7 (w/bundled sqlite3 module) + wxpython 2.8.
 
 The library is released under an MIT/X11 style license: see lma/LICENSE.
 The main program is released under the GPLv3 or better: see COPYING.
 
 My current to-do list is in TODO.
+Useless install instructions are in INSTALL.
+Licensing information in LICENSE.
+Quick-and-dirty get-started instructions in HELP.
