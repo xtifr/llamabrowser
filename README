@@ -1,15 +1,16 @@
-LMABrowser - A tool for browsing & downloading the 100,000+ free
+LlamaBrowser - A tool for browsing & downloading the 100,000+ free
 concert recordings at the Internet Archive's Live Music Archive (LMA).
 
 This is barely beta code.  It works for me, though(tm). :)
 
 Written by Chris Waters <xtifr.w@gmail.com>
 
-LMABrowser is written in Python.  It consists of a general purpose
-library, lma, which could potentially be used as the basis of a
-plug-in for other tools, and a simple graphical front end which allows
-you to immediately start browsing.  Basic features include searching
-and the ability to mark your favorite artists and shows.
+LlamaBrowser is written in Python.  It consists of a general purpose
+library, 'lma', which could potentially be used as the basis of a
+plug-in for other tools, and a simple graphical front end, 'llama',
+which allows you to immediately start browsing.  Basic features
+include searching and the ability to mark your favorite artists and
+shows.
 
 The internal lma module which does all the work uses SQLite for fast,
 reliable storage of artist/concert information.

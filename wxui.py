@@ -767,7 +767,8 @@ class LMAFrame(wx.Frame):
 
         # help menu
         self._helpMenu = wx.Menu()
-        self._helpMenu.Append(wx.ID_ABOUT, _(u"&About"), _(u"About LMABrowser"))
+        self._helpMenu.Append(wx.ID_ABOUT, _(u"&About"),
+                              _(u"About LlamaBrowser"))
         menubar.Append(self._helpMenu, _(u"&Help"))
 
         self.SetMenuBar(menubar)
@@ -870,7 +871,7 @@ class LMAApp(wx.App):
         return True
 
 def main():
-    lma.Config("~/.LMABrowser", create=True)
+    lma.Config("~/.llama", create=True)
     app = LMAApp()
     app.MainLoop()
 

@@ -1,11 +1,11 @@
-LMABrowser is Free/Libre/Open-Source Software--however different parts
+LlamaBrowser is Free/Libre/Open-Source Software--however different parts
 of it have different licenses.  See individual files for details.
 
 Broadly:
 
-1) The LMABrowser application itself is released under the GNU General
-Public License, version 3 or better, a copy of which is included with
-this package under the name COPYING.
+1) The LlamaBrowser application itself (and associated wxui.py module)
+is released under the GNU General Public License, version 3 or better,
+a copy of which is included with this package under the name COPYING.
 
 2) The lma library (comprising the files in the lma subdirectory) is
 released under a liberal MIT/X11-style license, as found in lma/LICENSE.
