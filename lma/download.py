@@ -48,12 +48,17 @@ def download_files(songlist, concert, targetdir, artist=None,
         if not download_one_file(concert, song, abspath, callback):
             return False
     return True
-            
+
 def download_one_file(concert, song, targetdir, callback):
     """Download one file, updating callback as necessary."""
 
-    # first, make sure we don't already have this one
-    filename = os.path.join(targetdir, song['name'])
+    # if there's an extra subdirectory, create it
+    filename = os.path.join(targetdir, os.path.normpath(song['name']))
+    (head, tail) = os.path.split(filename)
+    if not os.path.isdir(head):
+        os.mkdir(head)
+
+    # make sure we don't already have this one
     filesize = int(song['size'])
     if os.path.exists(filename):
         # it's there--is it the right size?
@@ -74,11 +79,14 @@ def download_one_file(concert, song, targetdir, callback):
         data = rhand.read(BUFFER_SIZE)
         while len(data) > 0:
             downloaded += len(data)
-            chksum.update(data)
             lhand.write(data)
+            chksum.update(data)
             if not cb.update(downloaded * 100/filesize):
                 break
             data = rhand.read(BUFFER_SIZE)
+    except IOError:
+        # nothing really to do, but we want to catch this anyway.
+        pass
     finally:
         lhand.close()
         rhand.close()

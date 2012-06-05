@@ -6,13 +6,13 @@ For initial release:
 * Add actual help
 * Add tooltips
 * Better error handling
-** when internet is off or download fails
+** when internet is off
 ** bad data from LMA
 * Test suites
 * Make distributable (distutils?)
 
 Little tasks:
-* Figure out how to handle nested songs (two directories deep)
+* if archive path has extra dir, make an option to flatten the tree.
 * Add taper, etc. to concert details
 * Add a popup when we're downloading details.
 * Notify user if there's nothing to download.
