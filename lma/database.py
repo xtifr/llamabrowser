@@ -13,9 +13,6 @@ import os
 import sqlite3
 
 import lma
-#
-# TODO: expand this to use the appropriate config directory & stuff
-_db_name = "lma.db"
 
 class Db(object):
     """A handle for the singleton DB access."""
@@ -159,6 +156,11 @@ CREATE TRIGGER afterconcert AFTER INSERT ON concert
   FOR EACH ROW BEGIN
     INSERT INTO newconcert (cid) VALUES (NEW.cid);
   END;
+
+CREATE TABLE dlconcert (
+    cid INTEGER UNIQUE REFERENCES concert(cid),
+    dldate DATE
+);
 
 CREATE TABLE details (
     cid INTEGER UNIQUE REFERENCES concert(cid),

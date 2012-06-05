@@ -2,7 +2,6 @@ Some of these will obviously end up generating subtasks
 
 For initial release:
 
-* Remember downloaded concerts
 * Add actual help
 * Add tooltips
 * Better error handling
@@ -12,7 +11,6 @@ For initial release:
 * Make distributable (distutils?)
 
 Little tasks:
-* if archive path has extra dir, make an option to flatten the tree.
 * Add taper, etc. to concert details
 * Add a popup when we're downloading details.
 * Notify user if there's nothing to download.
@@ -27,6 +25,7 @@ Longer term
 * Support non-unix systems?  (mostly config / storage issues)
 * proper i18n support
 * Artist details (to match concert details)
+* if archive path has extra dir, make an option to flatten the tree.
 * Autoconvert shn to flac option
 * Hide artists/concerts (just not interested)
 * Discard concert lists for artists

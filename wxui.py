@@ -399,10 +399,12 @@ class ConcertListCtrl(wx.ListCtrl):
         self.InsertColumn(0, _(u"Date"))
         self.InsertColumn(1, _(u"Concert Venue"))
         self.InsertColumn(2, _(u"Favorite"))
+        self.InsertColumn(3, _(u"Downloaded"))
 
-        self.SetColumnWidth(0, 100)
+        self.SetColumnWidth(0, 90)
         self.SetColumnWidth(1, 350)
         self.SetColumnWidth(2, 75)
+        self.SetColumnWidth(3, 90)
 
         # mark column as centered
         li = self.GetColumn(0)
@@ -471,6 +473,8 @@ class ConcertListCtrl(wx.ListCtrl):
             if self.clist[row].favorite:
                 return u"\u2665" # unicode heart
             return ""
+        elif column == 3:
+            return self.clist[row].dldate
 
 class ConcertListPanel(wx.Panel):
     """Panel for listing an artist's concerts.

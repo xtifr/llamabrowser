@@ -78,7 +78,8 @@ def clear_new_concerts(artist):
 CVIEW_ALL = _(u"All Concerts")
 CVIEW_FAVORITES = _(u"Favorites")
 CVIEW_NEW = _(u"New Concerts")
-CVIEW_SELECTORS = [CVIEW_ALL, CVIEW_FAVORITES, CVIEW_NEW]
+CVIEW_DL = _(u"Downloaded")
+CVIEW_SELECTORS = [CVIEW_ALL, CVIEW_FAVORITES, CVIEW_NEW, CVIEW_DL]
 
 #
 # db wrapper for a concert id
@@ -104,6 +105,9 @@ class Concert(lma.DbRecord):
     @property
     def lmaid(self):
         return super(Concert, self).getDbInfo("concert", "lmaid", "cid")
+    @property
+    def dldate(self):
+        return (super(Concert, self).getDbInfo("dlconcert", "dldate", "cid"))
 
     @property
     def artist(self):
@@ -135,6 +139,8 @@ class ConcertList(object):
             joinon = "JOIN favconcert AS f ON f.concertid = c.cid"
         elif self.mode == CVIEW_NEW:
             joinon = "JOIN newconcert AS n ON n.cid = c.cid"
+        elif self.mode == CVIEW_DL:
+            joinon = "JOIN dlconcert AS d ON d.cid = c.cid"
 
         # search uses like
         like = ""
