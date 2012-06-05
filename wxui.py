@@ -844,13 +844,13 @@ class LMAFrame(wx.Frame):
         """Create and display 'About' window."""
         from wx.lib.wordwrap import wordwrap
         info = wx.AboutDialogInfo()
-        info.Name = _(u"LMA Browser")
+        info.Name = _(u"LlamaBrowser")
         info.Version = lma.__version__
         info.Copyright = (u"\u24d2 2012 Chris Waters")
         info.Description = wordwrap(
             _(u"Browse and download concert recordings from the "
-            "Internet Archive's Live Music Archive (LMA). "
-            "The LMA features live concert recordings from "
+            "Internet Archive's Live Music Archive (LMA or The LlaMA). "
+            "The LlaMA features live concert recordings from "
             "thousands of taper-friendly bands, free for personal use.\n\n"
 
             "Recordings are available in lossless format (FLAC or SHN), and "
@@ -865,8 +865,8 @@ class LMAFrame(wx.Frame):
 
 class LMAApp(wx.App):
     def OnInit(self):
-        self.SetAppName("LMA Browser")
-        win = LMAFrame(None, -1, _(u"LMA Browser"))
+        self.SetAppName("LlamaBrowser")
+        win = LMAFrame(None, -1, _(u"LlamaBrowser"))
         win.Show()
         return True
 
