@@ -51,6 +51,7 @@ class Result (object):
         self._results = 0
         self._current = 0
         self._data = []
+        self.refill_data()
 
     def calc_query(self):
         """Calculate the full query including date restriction."""
@@ -92,21 +93,19 @@ class Result (object):
         # calculate offset into current page
         offset = self._current % self._rows
 
-        if offset == 0:
-            # starting a new page -- make sure we need it.
-            # (always need at least one, so skip check if _page is zero.)
-            if self._current >= self._results and self._page > 0:
-                raise StopIteration
-            self._page = self._page + 1
-            self.refill_data()
-
-        # if we refilled the data, this test is semi-redundant,
-        # but still useful in case the number of results changed.
         if self._current >= self._results:
             raise StopIteration
 
+        # don't refill on first page, since we already did to get _results
+        if offset == 0 and self._current > 0:
+            self._page += 1
+            self.refill_data()
+            # double check here in case the number of results changed.
+            if self._current >= self._results:
+                raise StopIteration
+
         # set up for next call, now that we're past the raises.
-        self._current = self._current + 1
+        self._current += 1
         return self._data[offset]
 
     def __iter__(self):
@@ -199,7 +198,7 @@ class ProgressIter(object):
 
         if (self._count % self._callback.frequency) == 0:
             self._callback.update(self._iter.current(), self._iter.total())
-        self._count = self._count + 1
+        self._count += 1
         return value
 
     def __iter__(self):
