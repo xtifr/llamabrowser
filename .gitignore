@@ -8,3 +8,8 @@
 *.bak
 # ignore any generated databases
 *.db
+#
+ignore distutils output
+MANIFEST
+dist
+build
