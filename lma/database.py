@@ -43,6 +43,7 @@ class DbRecord(object):
     look up their values."""
     def __init__(self, Id):
         self._value = str(int(Id))
+
     def getDbInfo(self, table, col, matchcol):
         """Find entry in table matching self."""
         c = Db().cursor()
@@ -169,4 +170,5 @@ CREATE TABLE details (
     lineage     TEXT,
     description TEXT,
     notes       TEXT
-);""")
+);
+""")

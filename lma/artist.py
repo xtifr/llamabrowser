@@ -77,6 +77,12 @@ class Artist(lma.DbRecord):
     """Object to wrap an artist ID and calculate various attributes."""
     def __init__(self, artist):
         super(Artist, self).__init__(artist)
+
+    def concertList(self):
+        """Return the list of concerts associated with this artist."""
+        return ConcertList(self)
+
+    # properties (db access)
     @property
     def name(self):
         return super(Artist, self).getDbInfo("artist", "aname", "aid")

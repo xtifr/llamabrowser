@@ -89,6 +89,12 @@ class Concert(lma.DbRecord):
     """Object to wrap a concert ID and calculate various attributes."""
     def __init__(self, concert):
         super(Concert, self).__init__(concert)
+
+    def fileList(self):
+        """Return the songs associated with this concert."""
+        return ConcertFileList(self)
+
+    # properties
     @property
     def name(self):
         return super(Concert, self).getDbInfo("concert", "ctitle", "cid")
