@@ -55,11 +55,16 @@ like the Artist List screen.  It also has a search button in the upper
 left, and a selection widget in the upper right.  It should all look
 fairly familiar if you looked at the previous screen.
 
+If you decide you no longer care about a particular artist, you can
+click on "File->Forget" to remove all information about this artists
+concerts.  Use with care, as information about favorite concerts and
+the like cannot be recovered.
+
 ** Favorites
 
 You now have an opportunity to mark an artist as a favorite.  If the
 artist whose concerts you are looking at is one of your favorites,
-click on "File->Mark Favorite".  To reverse this, click on it again.
+click on "Edit->Mark Favorite".  To reverse this, click on it again.
 A pop-up will tell you whether you have marked or cleared the status.
 Once you go back to the Artist List screen, you will be able to find
 this artist again easily by selecting "Favorites" with the selection
@@ -86,7 +91,7 @@ with the lossless format (Flac or Shorten) and whether lossy formats
 ** Favorites
 
 Again, you can mark this concert as one of your favorites by clicking
-"File->Mark Favorite".
+"Edit->Mark Favorite".
 
 ** Downloading Concerts
 

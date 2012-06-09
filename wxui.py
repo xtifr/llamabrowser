@@ -437,6 +437,22 @@ class ConcertListCtrl(wx.ListCtrl):
         if self.clist != None:
             self.clist.clearNew()
             self.reset()
+    def forget(self):
+        if self.clist != None:
+            style = wx.ICON_EXCLAMATION | wx.YES_NO | wx.NO_DEFAULT
+            win = wx.MessageDialog(self,
+                                   _(u"Forgetting all the concerts for this "
+                                     u"artist will discard any favorites "
+                                     u"you may have chosen and other "
+                                     u"information.  Are you really sure "
+                                     u"this is what you want to do?"),
+                                   _(u"Discard all concert info?"),
+                                   style=style)
+            result = win.ShowModal()
+            win.Destroy()
+            if result == wx.ID_YES:
+                self.clist.forget()
+                self.reset()
     def getConcert(self, row):
         return self.clist[row]
     def setArtist(self, artist):
@@ -541,6 +557,8 @@ class ConcertListPanel(wx.Panel):
         return self._listctrl.getConcert(row)
     def toggleFavorite(self):
         self._listctrl.toggleFavorite()
+    def forget(self):
+        self._listctrl.forget()
 
     # method handlers
     def setConcertMode(self, event):
@@ -754,15 +772,18 @@ class LMAFrame(wx.Frame):
                               _(u"Fetch/update from LMA"))
         self._fileMenu.Append(102, _(u"&Clear New List"),
                               _(u"Mark all as seen."))
-        self._fileMenu.Append(103, _(u"&Mark Favorite"),
-                              _(u"Mark this as a favorite."))
+        self._fileMenu.Append(103, _(u"&Forget All"),
+                              _(u"Remove all records"))
         self._fileMenu.Enable(103, False)
         self._fileMenu.Append(wx.ID_EXIT, _(u"&Quit"), _(u"Exit program"))
         menubar.Append(self._fileMenu, _(u"&File"))
 
         # edit menu
         self._editMenu = wx.Menu()
-        self._editMenu.Append(201, _(u"Preferences"), _(u"Set preferences"))
+        self._editMenu.Append(201, _(u"&Mark Favorite"),
+                              _(u"Mark this as a favorite."))
+        self._editMenu.Enable(201, False)
+        self._editMenu.Append(202, _(u"Preferences"), _(u"Set preferences"))
         menubar.Append(self._editMenu, _(u"Edit"))
 
         # help menu
@@ -776,9 +797,10 @@ class LMAFrame(wx.Frame):
         # bind menus
         self.Bind(wx.EVT_MENU, self.menuFetch, id=101)
         self.Bind(wx.EVT_MENU, self.menuClearNew, id=102)
-        self.Bind(wx.EVT_MENU, self.menuFavorite, id=103)
+        self.Bind(wx.EVT_MENU, self.menuForget, id=103)
 
-        self.Bind(wx.EVT_MENU, self.menuPreferences, id=201)
+        self.Bind(wx.EVT_MENU, self.menuFavorite, id=201)
+        self.Bind(wx.EVT_MENU, self.menuPreferences, id=202)
 
         self.Bind(wx.EVT_MENU, self.menuQuit, id=wx.ID_EXIT)
         self.Bind(wx.EVT_MENU, self.menuAbout, id=wx.ID_ABOUT)
@@ -804,33 +826,39 @@ class LMAFrame(wx.Frame):
         if ID == ARTIST_LIST_ID:
             self._concert.setArtist(self._artist.getArtist(row))
             self.replacePanel(self._concert)
-            self._fileMenu.Enable(103, True) # allow toggling favorites
+            self._fileMenu.Enable(103, True) # allow forgetting concerts
+            self._editMenu.Enable(201, True) # allow toggling favorites
         elif ID == CONCERT_LIST_ID:
             self._details.setConcert(self._concert.getConcert(row))
             self.replacePanel(self._details)
             self._fileMenu.Enable(102, False) # no new list to clear
+            self._fileMenu.Enable(103, False) # can't (yet) forget songs
 
     def OnButton(self, event):
         """Method to handle various buttons."""
         ID = event.GetId()
         if ID == CONCERT_BACK_BUTTON_ID:
             self.replacePanel(self._artist)
-            self._fileMenu.Enable(103, False) # no toggling favorites
+            self._fileMenu.Enable(103, False) # no forgetting artists
+            self._editMenu.Enable(201, False) # no toggling favorites
         elif ID == DETAILS_BACK_BUTTON_ID:
             self.replacePanel(self._concert)
             self._fileMenu.Enable(102, True) # allow clearing new-list
+            self._fileMenu.Enable(103, True) # can forget concerts
 
     ## menu methods
-                 
+
     def menuFetch(self, event):
         self._panel.download()
     def menuClearNew(self, event):
         self._panel.clearNew()
-    def menuFavorite(self, event):
-        self._panel.toggleFavorite()
+    def menuForget(self, event):
+        self._panel.forget()
     def menuQuit(self, event):
         self.Close()
 
+    def menuFavorite(self, event):
+        self._panel.toggleFavorite()
     def menuPreferences(self, event):
         cfg = lma.Config()
         win = ConfigurationDialog(self, -1)

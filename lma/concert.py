@@ -13,7 +13,6 @@ _ = str
 #
 # Concert database access
 #
-
 def download_concerts(artist, progbar = lma.NullProgressBar):
     """Download concert records for given artist from LMA."""
     artist = str(int(artist)) # make sure we have an integer
@@ -55,11 +54,9 @@ def download_concerts(artist, progbar = lma.NullProgressBar):
     if lastdate == None:
         clear_new_concerts(artist)
 
-
 #
 # reset new concert list for given artist
 #
-
 def clear_new_concerts(artist):
     """Clear an artist's new concert list."""
     artist = str(int(artist))
@@ -67,6 +64,28 @@ def clear_new_concerts(artist):
     c = db.cursor()
     c.execute("DELETE FROM newconcert WHERE cid IN "
                "  (SELECT cid FROM concert WHERE artistid = ?)", (artist,))
+    db.commit()
+    c.close()
+
+#
+# Forget all concerts for the given artist
+#
+def forget_concerts(artist):
+    """Forget all about this artist's concerts."""
+    db = lma.Db()
+    c = db.cursor()
+
+    # get rid of any dependent records first
+    clear_new_concerts(artist)
+    c.execute("DELETE FROM favconcert WHERE concertid IN "
+              "  (SELECT cid FROM concert WHERE artistid = ?)", (str(artist),))
+    c.execute("DELETE FROM dlconcert WHERE cid IN "
+              "  (SELECT cid FROM concert WHERE artistid = ?)", (str(artist),))
+
+    # now clear the database and forget we ever downloaded anything
+    c.execute("DELETE FROM concert WHERE artistid = ?", (str(artist),))
+    c.execute("DELETE FROM lastbrowse WHERE aid = ?", (str(artist),))
+
     db.commit()
     c.close()
 
@@ -84,7 +103,6 @@ CVIEW_SELECTORS = [CVIEW_ALL, CVIEW_FAVORITES, CVIEW_NEW, CVIEW_DL]
 #
 # db wrapper for a concert id
 #
-
 class Concert(lma.DbRecord):
     """Object to wrap a concert ID and calculate various attributes."""
     def __init__(self, concert):
@@ -119,6 +137,9 @@ class Concert(lma.DbRecord):
     def artist(self):
         return lma.Artist(super(Concert, self).getDbInfo("concert",
                                                          "artistid", "cid"))
+#
+# list of Concerts
+#
 class ConcertList(object):
     """Generic representation of a concert list."""
     def __init__(self, artist, progbar = lma.NullProgressBar):
@@ -167,6 +188,9 @@ class ConcertList(object):
 
     def clearNew(self):
         clear_new_concerts(self._artist)
+        self.refresh()
+    def forget(self):
+        forget_concerts(self._artist)
         self.refresh()
 
     # properties for each selection
