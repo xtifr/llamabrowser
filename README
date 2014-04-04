@@ -1,6 +1,9 @@
 LlamaBrowser - A tool for browsing & downloading the 100,000+ free
 concert recordings at the Internet Archive's Live Music Archive (LMA).
 
+   === CURRENT VERSION IS NOT COMPATIBLE WITH MS-WINDOWS! ===
+    (The issues are minor, but tricky. Will fix eventually.)
+
 This is barely beta code.  It works for me, though(tm). :)
 
 Written by Chris Waters <xtifr.w@gmail.com>
