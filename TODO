@@ -4,6 +4,10 @@ For initial release:
 
 * Add actual help
 * Add tooltips
+* Hotkeys
+* Single dialog for download progress (in long term, should be background?)
+* Comb GUI for functionality that should be in library, and move.
+* Button for download/update.
 * Better error handling
 ** when internet is off
 ** bad data from LMA
@@ -20,13 +24,17 @@ Longer term
 
 * Downloading enhancements
 ** add missing metadata to flac
+** Download non-audio data (images, etc.)
 * Concert stuff
+** redesign display section.
 ** play songs?
 * Support non-unix systems?  (mostly config / storage issues)
 * proper i18n support
 * Artist details (to match concert details)
 * if archive path has extra dir, make an option to flatten the tree.
-* Autoconvert shn to flac option
+* Autoconvert options
+** shn to flac
+** lossless to lossy (copy)
 * Hide artists/concerts (just not interested)
 * Discard concert lists for artists
 ** Add metadata too
