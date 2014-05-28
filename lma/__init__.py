@@ -25,7 +25,8 @@ from lma.config import (Config)
 
 from lma.archive import (archive_open, full_path)
 
-from lma.progress import (ProgressCallback, NullProgressBar)
+from lma.progress import (ProgressCallback, NullProgressBar,
+                          NullMultiProgressBar)
 
 from lma.query import (Query, ProgressIter, IDENTIFIER, TITLE, COLLECTION,
                        MEDIATYPE, PUBDATE, DATE, YEAR, FORMAT,

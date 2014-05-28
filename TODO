@@ -5,9 +5,8 @@ For initial release:
 * Add actual help
 * Add tooltips
 * Hotkeys
-* Single dialog for download progress (in long term, should be background?)
 * Comb GUI for functionality that should be in library, and move.
-* Button for download/update.
+* Button for download/update instead of menu?
 * Better error handling
 ** when internet is off
 ** bad data from LMA
@@ -25,6 +24,8 @@ Longer term
 * Downloading enhancements
 ** add missing metadata to flac
 ** Download non-audio data (images, etc.)
+** Background downloading
+** Pause/resume downloads
 * Concert stuff
 ** redesign display section.
 ** play songs?

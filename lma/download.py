@@ -25,7 +25,7 @@ BUFFER_SIZE = 8192 # this may be too small, but we'll try it
 # main download function
 #
 def download_files(songlist, concert, targetdir, artist=None,
-                   callback=lma.NullProgressBar):
+                   callback=lma.NullMultiProgressBar):
     """Download songs to given directory (or subdir if artist specified)."""
 
     # make sure target directory exists
@@ -43,10 +43,17 @@ def download_files(songlist, concert, targetdir, artist=None,
     if not os.path.isdir(abspath):
         os.mkdir(abspath)
 
+    # prepare the progress bar
+    totalbytes = sum(int(song['size']) for song in songlist)
+    progress_bar = callback(_(u'Download Concert'), _(u'All Songs'), totalbytes)
+
     # time to download
     for song in songlist:
-        if not download_one_file(concert, song, abspath, callback):
+        progress_bar.StartPart(song['name'], int(song['size']))
+        if not download_one_file(concert, song, abspath, progress_bar):
+            progress_bar.Done("Download failed.")
             return False
+    progress_bar.Done()
 
     # success, mark the concert as downloaded
     # (yes, it may be partial, but we still downloaded it.
@@ -59,7 +66,7 @@ def download_files(songlist, concert, targetdir, artist=None,
 
     return True
 
-def download_one_file(concert, song, targetdir, callback):
+def download_one_file(concert, song, targetdir, progress_bar):
     """Download one file, updating callback as necessary."""
 
     # if there's an extra subdirectory, create it
@@ -77,8 +84,6 @@ def download_one_file(concert, song, targetdir, callback):
         # not right size, just remove it
         os.remove(filename)
 
-    cb = callback(_(u"Download File"), song['name'], can_cancel=True)
-
     # don't use os.path.join here, because the name is for remote system
     downloaded = 0
     chksum = hashlib.md5()
@@ -91,7 +96,7 @@ def download_one_file(concert, song, targetdir, callback):
             downloaded += len(data)
             lhand.write(data)
             chksum.update(data)
-            if not cb.update(downloaded * 100/filesize):
+            if not progress_bar.update(downloaded):
                 break
             data = rhand.read(BUFFER_SIZE)
     except IOError:
@@ -103,9 +108,7 @@ def download_one_file(concert, song, targetdir, callback):
 
     # now, make sure our checksum matches
     if chksum.hexdigest() == song['md5']:
-        cb.done()
         return True
     # we failed, remove the partial download
     os.remove(filename)
-    cb.done(_("Download Failed"))
     return False

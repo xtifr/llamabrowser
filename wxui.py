@@ -45,7 +45,7 @@ DETAILS_BACK_BUTTON_ID = 22
 # progress bar for download callback
 #
 
-class ProgressBar(object):
+class SingleProgressDialog(object):
     """Provide progress bars for downloading."""
     def __init__(self, title, msg, max=100, can_cancel=False):
         style = wx.PD_APP_MODAL | wx.PD_ELAPSED_TIME | wx.PD_AUTO_HIDE
@@ -65,6 +65,100 @@ class ProgressBar(object):
             warn.ShowModal()
             warn.Destroy()
         self._dialog.Destroy()
+
+#
+# special progress bar for multifile download
+#
+class MultiProgressDialog (wx.Dialog):
+    """Progress dialog with subtotal & total bars for multipart actions."""
+
+    def __init__(self, title, msg, max=1000):
+        """Two-part progress dialog, with a subtotal and total bar.
+
+        This is used to show the progress of individual steps of a
+        multi-part process (like downloading or installing multiple
+        files.  The max argument given here is for the grand total of
+        all parts.  The maximum for each subpart is passed with the
+        StartPart() method, which must be called before the first call
+        to update, and the sum total of the maximum for each subpart
+        should add up to the grand total given here. Then, the
+        Update() method works exactly the same as with the standard
+        wx.ProgressDialog()."""
+
+        self._prev_part_count = 0
+        self._prev_part_total = 0
+        self._cancelled = False
+
+        super(MultiProgressDialog, self).__init__(None, -1, title)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+
+        # subtotal gauge and text
+        self._subtotal_gauge = wx.Gauge(self)
+        sizer.Add(self._subtotal_gauge, 0, wx.LEFT|wx.RIGHT|wx.TOP|wx.EXPAND, 8)
+        self._subtotal_text = wx.StaticText(self, style=wx.ALIGN_LEFT)
+        sizer.Add(self._subtotal_text, 0, wx.LEFT|wx.RIGHT|wx.TOP|wx.EXPAND, 4)
+
+        # totals gauge and text
+        self._total_gauge = wx.Gauge(self, range=max)
+        sizer.Add(self._total_gauge, 0, wx.LEFT|wx.RIGHT|wx.TOP|wx.EXPAND, 8)
+        self._total_text = wx.StaticText(self, style=wx.ALIGN_LEFT, label=msg)
+        sizer.Add(self._total_text, 0, wx.LEFT|wx.RIGHT|wx.TOP|wx.EXPAND, 4)
+
+        # cancel button
+        bsizer = wx.BoxSizer(wx.HORIZONTAL)
+        self._cancel = wx.Button(self, wx.ID_CANCEL)
+        self.Bind(wx.EVT_BUTTON, self.OnCancel, self._cancel)
+        bsizer.Add(self._cancel, 0, wx.ALIGN_RIGHT, 8)
+        sizer.Add(bsizer, 0)
+
+        self.SetSizer(sizer)
+
+        # resize the height only
+        self.SetSize(wx.Size(self.GetSize()[0], self.GetBestSize()[1]))
+
+        self.Show(True)
+
+    def StartPart(self, msg, max=100, msg2=None):
+        """Starting a new file (resets subtotal gauge).
+
+        The msg argument sets the text for the subtotal gauge.
+        The max argument sets the range for the subtotal gauge.
+        The msg2 argument, if provided, sets a new text for the total gauge."""
+
+        # only do extra stuff if we have at least one extra argument
+        if self._prev_part_count > 0:
+            self._prev_part_total += self._subtotal_gauge.GetRange()
+        self._prev_part_count += 1
+
+        self._subtotal_text.SetLabel(msg)
+        self._subtotal_gauge.SetValue(0)
+        self._subtotal_gauge.SetRange(max)
+
+        if msg2:
+            self._total_text.SetLabel(msg2)
+        wx.YieldIfNeeded()
+        self.Update()
+
+    def update(self, total):
+        """Update both gauges, unless cancel button pressed."""
+        if self._cancelled:
+            return False
+        self._subtotal_gauge.SetValue(total)
+        self._total_gauge.SetValue(total + self._prev_part_total)
+        wx.YieldIfNeeded()
+        self.Update()
+        return True
+
+    def Done(self, error=None):
+        """Finish up."""
+        # TODO: do something with the error message
+        self.Hide()
+        self.Destroy()
+
+    def OnCancel(self, event):
+        """Cancel button clicked."""
+        self._cancelled = True
 
 #
 # Download dialog (for songs)
@@ -165,7 +259,7 @@ class DownloadDialog(wx.Dialog):
             to_get = [song for i, song in enumerate(self._songs)
                       if self._list.IsChecked(i)]
             if lma.download_files(to_get, self._concert, self._dir.GetPath(),
-                                  artist, ProgressBar):
+                                  artist, MultiProgressDialog):
                 break
         self.Destroy()
 
@@ -283,7 +377,7 @@ class ArtistListCtrl(wx.ListCtrl):
                  style = (wx.LC_REPORT | wx.LC_VIRTUAL | wx.LC_SINGLE_SEL
                           | wx.LC_HRULES | wx.LC_VRULES)):
         super(ArtistListCtrl, self).__init__(parent, id, style=style)
-        self.alist = lma.ArtistList(ProgressBar)
+        self.alist = lma.ArtistList(SingleProgressDialog)
 
         self.InsertColumn(0, _(u"Artist Name"))
         self.InsertColumn(1, _(u"Last Browsed"))
@@ -458,7 +552,7 @@ class ConcertListCtrl(wx.ListCtrl):
     def setArtist(self, artist):
         """Set artist to display concerts for.  Must be called before using."""
         self._artist = artist
-        self.clist = lma.ConcertList(artist, ProgressBar)
+        self.clist = lma.ConcertList(artist, SingleProgressDialog)
         # move to top
         if self.GetItemCount() > 0:
             self.EnsureVisible(0)

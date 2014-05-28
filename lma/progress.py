@@ -52,4 +52,15 @@ class ProgressCallback(object):
     def frequency(self, value):
         self._frequency = value
 
+# multi-part progress bar stub for download filesets
+class NullMultiProgressBar(object):
+    """Provide methods for UI multi-part progress bar wrappers."""
 
+    def __init__(self, title, msg, max=1000):
+        pass
+    def StartPart(self, msg, max=100, msg2=None):
+        pass
+    def update(self, percent):
+        return True
+    def Done(self, error=None):
+        pass
