@@ -68,7 +68,7 @@ class _Result (object):
         self._results = 0
         self._current = 0
         self._data = []
-        self.refill_data()
+        self._refill_data()
 
     def calc_query(self):
         """Calculate the full query including date restriction."""
@@ -77,7 +77,7 @@ class _Result (object):
         today = time.strftime("%Y-%m-%d", time.gmtime())
         return "%s AND publicdate:[%s TO %s]" % (self._query, self._date, today)
 
-    def make_json_url(self):
+    def _make_json_url(self):
         """Make the URL to use to get a page of json data.  (Internal)"""
         body = (["q=" + urllib2.quote(self.calc_query()),
                  "rows=" + str(self._rows),
@@ -87,20 +87,20 @@ class _Result (object):
                 ["sort[]=" + urllib2.quote(s) for s in self._sort])
         return "&".join(body)
 
-    def read_page(self):
+    def _read_page(self):
         """Read the next page of data from the Archive. (Internal)"""
         
-        hand = archive_open(self.make_json_url(), search=True)
+        hand = archive_open(self._make_json_url(), search=True)
         try:
             data = hand.read()
         finally:
             hand.close()
         return data
 
-    def refill_data(self):
+    def _refill_data(self):
         """Read and parse next page of data from the Archive. (Internal)"""
         import json
-        j = json.loads(self.read_page())
+        j = json.loads(self._read_page())
         response=j["response"]
         self._results = response["numFound"]
         self._data = response["docs"]
@@ -116,7 +116,7 @@ class _Result (object):
         # don't refill on first page, since we already did to get _results
         if offset == 0 and self._current > 0:
             self._page += 1
-            self.refill_data()
+            self._refill_data()
             # double check here in case the number of results changed.
             if self._current >= self._results:
                 raise StopIteration
