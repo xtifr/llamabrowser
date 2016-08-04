@@ -14,7 +14,9 @@ The ProgressIter class allows hooking a UI callback into a Query."""
 
 import time
 import urllib2
-import lma
+
+# Hostname to access
+ARCHIVE_URL = "http://www.archive.org"
 
 # main fields we'll want to use
 # (if you add/remove any, don't forget to fix import list in __init__.py)
@@ -32,16 +34,31 @@ def CONCERT_QUERY(id):
     return "collection:%s AND mediatype:etree" % str(id)
 STANDARD_FIELDS=[IDENTIFIER, TITLE]
 
-# An sample version of the type of URL we'll be using to query the LMA is:
+# A sample version of the type of URL we'll be using to query the LMA is:
 # http://archive.org/advancedsearch.php?q=mediatype%3Acollection%20AND%20collection%3Aetree&fl[]=identifier&sort[]=&sort[]=&sort[]=&rows=50&page=1&output=json
 
-class Result (object):
+def archive_open(path, search=False):
+    """URL handler wrapper for Internet Archive addresses.
+
+    Takes two arguments: a relative path (or search string) and a
+    search flag, which defaults to false.  If the search flag set to
+    True, this sends a query to the Archive's search engine,
+    otherwise, it opens a downloadable file."""
+
+    if search:
+        op = "/advancedsearch.php?"
+    else:
+        op = "/download/"
+    return urllib2.urlopen(ARCHIVE_URL + op + path)
+
+
+class _Result (object):
     """Internal class returned from an instance of the Query class.
 
     Encapsulates the state of the query at the time it's created,
     and can then be used to iterate through the results."""
 
-    def __init__(self, query, field, sort, rows, date):
+    def __init__(self, query, field, sort, rows=50, date=None):
         self._query = query
         self._field = list(field)
         self._sort = list(sort)
@@ -73,7 +90,7 @@ class Result (object):
     def read_page(self):
         """Read the next page of data from the Archive. (Internal)"""
         
-        hand = lma.archive_open(self.make_json_url(), search=True)
+        hand = archive_open(self.make_json_url(), search=True)
         try:
             data = hand.read()
         finally:
@@ -178,7 +195,7 @@ class Query (object):
         # set default value for returned field if none given
         if len(field) == 0:
             field = [IDENTIFIER]
-        return Result(self._query, field, self._sort, self._rows, self._date)
+        return _Result(self._query, field, self._sort, self._rows, self._date)
 
 class ProgressIter(object):
     """Wrap an LMA query with a progress callback object."""

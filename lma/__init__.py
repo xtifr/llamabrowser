@@ -23,14 +23,12 @@ __version__ = '0.1'
 
 from lma.config import (Config)
 
-from lma.archive import (archive_open, full_path)
-
 from lma.progress import (ProgressCallback, NullProgressBar,
                           NullMultiProgressBar)
 
-from lma.query import (Query, ProgressIter, IDENTIFIER, TITLE, COLLECTION,
-                       MEDIATYPE, PUBDATE, DATE, YEAR, FORMAT,
-                       BAND_QUERY, CONCERT_QUERY, STANDARD_FIELDS)
+from lma.query import (archive_open, Query, ProgressIter,
+                       IDENTIFIER, TITLE, COLLECTION, MEDIATYPE, PUBDATE, DATE, YEAR,
+                       FORMAT, BAND_QUERY, CONCERT_QUERY, STANDARD_FIELDS)
 
 from lma.database import (Db, DbRecord)
 
