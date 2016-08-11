@@ -142,9 +142,9 @@ class Concert(lma.DbRecord):
 #
 class ConcertList(object):
     """Generic representation of a concert list."""
-    def __init__(self, artist, progbar = lma.NullProgressBar):
+
+    def __init__(self, artist):
         self._artist = artist
-        self._progbar = progbar
         self._mode = CVIEW_ALL
         self._search = None
         self.refresh()
@@ -181,9 +181,9 @@ class ConcertList(object):
         self._data = [Concert(x[0]) for x in c.fetchall()]
         c.close()
 
-    def repopulate(self):
+    def repopulate(self, progbar = lma.NullProgressBar):
         """Update the DB from the internet, then refresh."""
-        download_concerts(self._artist, self._progbar)
+        download_concerts(self._artist, progbar)
         self.refresh()
 
     def clearNew(self):

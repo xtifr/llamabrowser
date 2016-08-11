@@ -377,7 +377,7 @@ class ArtistListCtrl(wx.ListCtrl):
                  style = (wx.LC_REPORT | wx.LC_VIRTUAL | wx.LC_SINGLE_SEL
                           | wx.LC_HRULES | wx.LC_VRULES)):
         super(ArtistListCtrl, self).__init__(parent, id, style=style)
-        self.alist = lma.ArtistList(SingleProgressDialog)
+        self.alist = lma.ArtistList()
 
         self.InsertColumn(0, _(u"Artist Name"))
         self.InsertColumn(1, _(u"Last Browsed"))
@@ -409,7 +409,7 @@ class ArtistListCtrl(wx.ListCtrl):
         del(self.alist.search)
         self.reset()
     def download(self):
-        self.alist.repopulate()
+        self.alist.repopulate(SingleProgressDialog)
         self.reset()
     def clearNew(self):
         self.alist.clearNew()
@@ -525,7 +525,7 @@ class ConcertListCtrl(wx.ListCtrl):
             self.reset()
     def download(self):
         if self.clist != None:
-            self.clist.repopulate()
+            self.clist.repopulate(SingleProgressDialog)
             self.reset()
     def clearNew(self):
         if self.clist != None:
@@ -552,7 +552,7 @@ class ConcertListCtrl(wx.ListCtrl):
     def setArtist(self, artist):
         """Set artist to display concerts for.  Must be called before using."""
         self._artist = artist
-        self.clist = lma.ConcertList(artist, SingleProgressDialog)
+        self.clist = lma.ConcertList(artist)
         # move to top
         if self.GetItemCount() > 0:
             self.EnsureVisible(0)

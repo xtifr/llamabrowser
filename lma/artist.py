@@ -80,7 +80,7 @@ class Artist(lma.DbRecord):
 
     def concertList(self):
         """Return the list of concerts associated with this artist."""
-        return ConcertList(self)
+        return lma.ConcertList(self)
 
     # properties (db access)
     @property
@@ -96,10 +96,12 @@ class Artist(lma.DbRecord):
     def favorite(self, flag):
         super(Artist, self).setDbBool("favorite", "artistid", flag)
 
+#
+# ArtistList represents the full set of known artists
+#
 class ArtistList(object):
     """Generic representation of artist list."""
-    def __init__(self, progbar = lma.NullProgressBar):
-        self._progbar = progbar
+    def __init__(self):
         self._mode = AVIEW_ALL
         self._search = None
         self.refresh()
@@ -129,9 +131,9 @@ class ArtistList(object):
         self._data = [Artist(x[0]) for x in c.fetchall()]
         c.close()
 
-    def repopulate(self):
+    def repopulate(self, progbar = lma.NullProgressBar):
         """Update the DB from the internet, then refresh."""
-        download_artists(self._progbar)
+        download_artists(progbar)
         self.refresh()
 
     def clearNew(self):
