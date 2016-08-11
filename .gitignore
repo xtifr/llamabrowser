@@ -12,5 +12,5 @@
 MANIFEST
 dist
 build
-/config
-/lma.db-journal
+config
+lma.db-journal
