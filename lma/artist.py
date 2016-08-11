@@ -33,16 +33,16 @@ class Artist(lma.DbRecord):
     # properties (db access)
     @property
     def name(self):
-        return super(Artist, self).getDbInfo("artist", "aname", "aid")
+        return self.getDbInfo("artist", "aname", "aid")
     @property
     def browsedate(self):
-        return super(Artist, self).getDbInfo("lastbrowse", "browsedate", "aid")
+        return self.getDbInfo("lastbrowse", "browsedate", "aid")
     @property
     def favorite(self):
-        return super(Artist, self).getDbBool("favorite", "artistid")
+        return self.getDbBool("favorite", "artistid")
     @favorite.setter
     def favorite(self, flag):
-        super(Artist, self).setDbBool("favorite", "artistid", flag)
+        self.setDbBool("favorite", "artistid", flag)
 
 #
 # ArtistList represents the full set of known artists

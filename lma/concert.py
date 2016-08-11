@@ -55,28 +55,28 @@ class Concert(lma.DbRecord):
     # properties
     @property
     def name(self):
-        return super(Concert, self).getDbInfo("concert", "ctitle", "cid")
+        return self.getDbInfo("concert", "ctitle", "cid")
     @property
     def date(self):
-        return super(Concert, self).getDbInfo("concert", "cdate", "cid")
+        return self.getDbInfo("concert", "cdate", "cid")
     @property
     def favorite(self):
         """Favorite flag (read/write)."""
-        return super(Concert, self).getDbBool("favconcert", "concertid")
+        return self.getDbBool("favconcert", "concertid")
     @favorite.setter
     def favorite(self, flag):
-        super(Concert, self).setDbBool("favconcert", "concertid", flag)
+        self.setDbBool("favconcert", "concertid", flag)
     @property
     def lmaid(self):
-        return super(Concert, self).getDbInfo("concert", "lmaid", "cid")
+        return self.getDbInfo("concert", "lmaid", "cid")
     @property
     def dldate(self):
-        return (super(Concert, self).getDbInfo("dlconcert", "dldate", "cid"))
+        return self.getDbInfo("dlconcert", "dldate", "cid")
 
     @property
     def artist(self):
-        return lma.Artist(super(Concert, self).getDbInfo("concert",
-                                                         "artistid", "cid"))
+        return lma.Artist(self.getDbInfo("concert", "artistid", "cid"))
+
 #
 # list of Concerts
 #
