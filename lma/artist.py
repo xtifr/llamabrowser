@@ -11,58 +11,6 @@ import lma
 # temporary def used till we set up gettext
 _ = str
 
-#
-# Artist database access
-#
-
-def download_artists(progbar = lma.NullProgressBar):
-    """Download artist records from LMA."""
-    # get the last update date
-    db = lma.Db()
-    c = db.cursor()
-    c.execute("SELECT last_artist_read from lma_config where recnum = 1");
-    lastdate = c.fetchone()[0]
-
-    # form the archive query (including lastdate)
-    aquery = lma.Query(lma.BAND_QUERY)
-    aquery.add_fields(lma.STANDARD_FIELDS)
-    aquery.add_sort(lma.PUBDATE)
-    aquery.newer_than(lastdate)
-
-    # create the progress bar callback
-    callback = lma.ProgressCallback("Live Music Archive Download",
-                                    "Retrieve Artists from LMA", progbar)
-
-    # push the records into our database, with callback
-    c.executemany("INSERT OR IGNORE INTO artist (aname, lmaid)"
-                  "  VALUES (:title, :identifier)",
-                   lma.ProgressIter(aquery, callback))
-
-    # now update the last-updated field
-    c.execute("UPDATE lma_config SET last_artist_read = date('now')"
-               "WHERE recnum = 1")
-
-    db.commit()
-    c.close()
-
-    # clear newlist on first time through
-    if lastdate == None:
-        clear_new_artists()
-
-
-#
-# reset the new artist list
-#
-def clear_new_artists():
-    """Clear the new artist list."""
-    db = lma.Db()
-    db.execute("DELETE FROM newartist")
-    db.commit()
-
-#
-# Prepare a list of artists
-#
-
 # selectors for display mode, separated out for l10n
 AVIEW_ALL = _(u"All Artists")
 AVIEW_FAVORITES = _(u"Favorites")
@@ -133,12 +81,46 @@ class ArtistList(object):
 
     def repopulate(self, progbar = lma.NullProgressBar):
         """Update the DB from the internet, then refresh."""
-        download_artists(progbar)
-        self.refresh()
+
+        # get the last update date
+        db = lma.Db()
+        c = db.cursor()
+        c.execute("SELECT last_artist_read from lma_config where recnum = 1");
+        lastdate = c.fetchone()[0]
+
+        # form the archive query (including lastdate)
+        aquery = lma.Query(lma.BAND_QUERY)
+        aquery.add_fields(lma.STANDARD_FIELDS)
+        aquery.add_sort(lma.PUBDATE)
+        aquery.newer_than(lastdate)
+
+        # create the progress bar callback
+        callback = lma.ProgressCallback("Live Music Archive Download",
+                                        "Retrieve Artists from LMA", progbar)
+
+        # push the records into our database, with callback
+        c.executemany("INSERT OR IGNORE INTO artist (aname, lmaid)"
+                      "  VALUES (:title, :identifier)",
+                       lma.ProgressIter(aquery, callback))
+
+        # now update the last-updated field
+        c.execute("UPDATE lma_config SET last_artist_read = date('now')"
+                   "WHERE recnum = 1")
+
+        db.commit()
+        c.close()
+
+        # clear newlist on first time through
+        if lastdate == None:
+            self.clearNew()
+        else:
+            self.refresh()
 
     def clearNew(self):
         """Clear the new list, then refresh."""
-        clear_new_artists()
+        db = lma.Db()
+        db.execute("DELETE FROM newartist")
+        db.commit()
         self.refresh()
 
     # properties for mode selection

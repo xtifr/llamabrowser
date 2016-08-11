@@ -15,44 +15,6 @@ _ = str
 #
 def download_concerts(artist, progbar = lma.NullProgressBar):
     """Download concert records for given artist from LMA."""
-    artist = str(int(artist)) # make sure we have an integer
-    db = lma.Db()
-
-    # get the last update date
-    c = db.cursor()
-    c.execute("SELECT a.lmaid, a.aname, l.browsedate FROM artist AS a"
-              "  LEFT JOIN lastbrowse AS l ON a.aid = l.aid"
-              "  WHERE a.aid = ?", (artist,))
-    lmaid, aname, lastdate = c.fetchone()
-
-    # form the archive query (including lastdate)
-    cquery = lma.Query(lma.CONCERT_QUERY(lmaid))
-    cquery.add_fields(lma.STANDARD_FIELDS)
-    cquery.add_fields([lma.DATE, lma.YEAR])
-    cquery.add_sort(lma.PUBDATE)
-    cquery.newer_than(lastdate)
-
-    # create the progress bar callback
-    callback = lma.ProgressCallback("Live Music Archive Download",
-                                    "Retrieve %s Concert List" % aname,
-                                    progbar)
-
-    # push the records into our database, with callback
-    c.executemany("INSERT OR IGNORE INTO concert"
-                  " (ctitle, lmaid, cyear, cdate, artistid) VALUES"
-                  "  (:title, :identifier, :year, date(:date), %s)" % artist,
-                  lma.ProgressIter(cquery, callback))
-
-    # now update the artist's last-updated field
-    c.execute("INSERT OR REPLACE INTO lastbrowse (aid, browsedate)"
-              "  VALUES (?, date('now'))", (artist,))
-
-    db.commit()
-    c.close()
-
-    # clear newlist on first time through
-    if lastdate == None:
-        clear_new_concerts(artist)
 
 #
 # reset new concert list for given artist
@@ -60,34 +22,12 @@ def download_concerts(artist, progbar = lma.NullProgressBar):
 def clear_new_concerts(artist):
     """Clear an artist's new concert list."""
     artist = str(int(artist))
-    db = lma.Db()
-    c = db.cursor()
-    c.execute("DELETE FROM newconcert WHERE cid IN "
-               "  (SELECT cid FROM concert WHERE artistid = ?)", (artist,))
-    db.commit()
-    c.close()
 
 #
 # Forget all concerts for the given artist
 #
 def forget_concerts(artist):
     """Forget all about this artist's concerts."""
-    db = lma.Db()
-    c = db.cursor()
-
-    # get rid of any dependent records first
-    clear_new_concerts(artist)
-    c.execute("DELETE FROM favconcert WHERE concertid IN "
-              "  (SELECT cid FROM concert WHERE artistid = ?)", (str(artist),))
-    c.execute("DELETE FROM dlconcert WHERE cid IN "
-              "  (SELECT cid FROM concert WHERE artistid = ?)", (str(artist),))
-
-    # now clear the database and forget we ever downloaded anything
-    c.execute("DELETE FROM concert WHERE artistid = ?", (str(artist),))
-    c.execute("DELETE FROM lastbrowse WHERE aid = ?", (str(artist),))
-
-    db.commit()
-    c.close()
 
 #
 # Prepare a list of concerts
@@ -183,14 +123,75 @@ class ConcertList(object):
 
     def repopulate(self, progbar = lma.NullProgressBar):
         """Update the DB from the internet, then refresh."""
-        download_concerts(self._artist, progbar)
-        self.refresh()
+
+        db = lma.Db()
+
+        # get the last update date
+        c = db.cursor()
+        c.execute("SELECT a.lmaid, a.aname, l.browsedate FROM artist AS a"
+                  "  LEFT JOIN lastbrowse AS l ON a.aid = l.aid"
+                  "  WHERE a.aid = ?", (str(self._artist),))
+        lmaid, aname, lastdate = c.fetchone()
+
+        # form the archive query (including lastdate)
+        cquery = lma.Query(lma.CONCERT_QUERY(lmaid))
+        cquery.add_fields(lma.STANDARD_FIELDS)
+        cquery.add_fields([lma.DATE, lma.YEAR])
+        cquery.add_sort(lma.PUBDATE)
+        cquery.newer_than(lastdate)
+
+        # create the progress bar callback
+        callback = lma.ProgressCallback("Live Music Archive Download",
+                                        "Retrieve %s Concert List" % aname,
+                                        progbar)
+
+        # push the records into our database, with callback
+        c.executemany("INSERT OR IGNORE INTO concert"
+                      " (ctitle, lmaid, cyear, cdate, artistid) VALUES"
+                      "  (:title, :identifier, :year, date(:date), %s)" %
+                      str(self._artist), lma.ProgressIter(cquery, callback))
+
+        # now update the artist's last-updated field
+        c.execute("INSERT OR REPLACE INTO lastbrowse (aid, browsedate)"
+                  "  VALUES (?, date('now'))", (str(self._artist),))
+
+        db.commit()
+        c.close()
+
+        # clear newlist on first time through
+        if lastdate == None:
+            self.clearNew()
+        else:
+            self.refresh()
 
     def clearNew(self):
-        clear_new_concerts(self._artist)
+        """Clear the 'new' concerts list."""
+        db = lma.Db()
+        c = db.cursor()
+        c.execute("DELETE FROM newconcert WHERE cid IN "
+                  "  (SELECT cid FROM concert WHERE artistid = ?)", (str(self._artist),))
+        db.commit()
+        c.close()
         self.refresh()
+
     def forget(self):
-        forget_concerts(self._artist)
+        """Remove all concerts from db; create blank slate..."""
+        db = lma.Db()
+        c = db.cursor()
+
+        # get rid of any dependent records first
+        self.clearNew()
+        c.execute("DELETE FROM favconcert WHERE concertid IN "
+                  "  (SELECT cid FROM concert WHERE artistid = ?)", (str(self._artist),))
+        c.execute("DELETE FROM dlconcert WHERE cid IN "
+                  "  (SELECT cid FROM concert WHERE artistid = ?)", (str(self._artist),))
+
+        # now clear the database and forget we ever downloaded anything
+        c.execute("DELETE FROM concert WHERE artistid = ?", (str(self._artist),))
+        c.execute("DELETE FROM lastbrowse WHERE aid = ?", (str(self._artist),))
+
+        db.commit()
+        c.close()
         self.refresh()
 
     # properties for each selection

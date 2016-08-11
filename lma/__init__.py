@@ -32,16 +32,10 @@ from lma.query import (archive_open, Query, ProgressIter,
 
 from lma.database import (Db, DbRecord)
 
-from lma.artist import (download_artists, 
-                        clear_new_artists, 
-                        ArtistList, Artist,
-                        AVIEW_SELECTORS)
+from lma.artist import (ArtistList, Artist, AVIEW_SELECTORS)
 
-from lma.concert import (download_concerts,
-                         clear_new_concerts,
-                         ConcertList, Concert,
-                         CVIEW_SELECTORS)
+from lma.concert import (ConcertList, Concert, CVIEW_SELECTORS)
 
 from lma.details import (ConcertDetails, ConcertFileList, default_formats)
 
-from download import (download_files)
+from lma.download import (download_files)
