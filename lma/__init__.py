@@ -6,18 +6,14 @@
 
 """Module for access to the Internet Archive's Live Music Archive.
 
-The download_artists() function gets new artist data from the Archive,
-access is provided through the ArtistList class.
-''art = ArtistList()''
+The 'Query' class provides raw access to the Archive's database.
 
-The download_concerts() function gets concert data for a given artist,
-access is provided through the ConcertList class.
-''con = ConcertList(art[n])'' where 'n' is the index of a given artist.
-
-Individual concert details are re-read by default, rather than cached
-like the artist and concert lists.  Overall details are accessed
-through the ConcertDetails class, and the songs and other files
-are access through the ConcertFileList class."""
+The LMA data from the Archive is cached locally, and accessed through
+the 'ArtistList' and 'ConcertList' classes. Concert details are
+retrieved with the 'ConcertFileList' and 'ConcertDetails' classes. Songs
+from a specific concert are downloaded with the 'download_files'
+function.
+"""
 
 __version__ = '0.1'
 
