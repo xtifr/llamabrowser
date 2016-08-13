@@ -229,8 +229,9 @@ class ConcertDetails(object):
 
     We get them from the LMA unless we have them cached locally.
     We don't save them (cache them) unless specifically asked."""
-    def __init__(self, concert):
+    def __init__(self, db, concert):
         """Get the details either from local cache or the LMA."""
+        self._db = db
         self._concert = concert
         self._saved = False
         self._data = None
@@ -251,8 +252,7 @@ class ConcertDetails(object):
         """Write the details to the cache if necessary."""
         if self._saved == True:
             return
-        db = lma.Db()
-        c = db.cursor()
+        c = self._db.cursor()
         # make text versions of field list, with and without colons
         f1 = ",".join(meta_fields)
         f2 = ":" + ", :".join(meta_fields)
@@ -260,18 +260,18 @@ class ConcertDetails(object):
         c.execute("INSERT OR REPLACE INTO details"
                   " (cid, %s) VALUES (:cid, %s)" % (f1, f2), self._data)
         c.close()
-        db.commit()
+        self._db.commit()
         self._saved = True
 
     def loadFromCache(self):
         """Try to get concert details from db.  If not there, return None."""
 
-        db = lma.Db()
-        c = db.cursor()
+        c = self._db.cursor()
         f1 = ",".join(meta_fields)
         c.execute("SELECT %s FROM details WHERE cid = ?" % f1,
                   (str(self._concert),))
         result = c.fetchone()
+        c.close()
         if result == None:
             return
         self._data = {x : y  for x,y in zip(meta_fields, result)}

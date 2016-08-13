@@ -13,6 +13,9 @@ the 'ArtistList' and 'ConcertList' classes. Concert details are
 retrieved with the 'ConcertFileList' and 'ConcertDetails' classes. Songs
 from a specific concert are downloaded with the 'download_files'
 function.
+
+The database module provides common base classes for the 'Artist',
+'Concert', 'ArtistList', and 'ConcertList' classes.
 """
 
 __version__ = '0.1'
@@ -26,7 +29,7 @@ from lma.query import (archive_open, Query, ProgressIter,
                        IDENTIFIER, TITLE, COLLECTION, MEDIATYPE, PUBDATE, DATE, YEAR,
                        FORMAT, BAND_QUERY, CONCERT_QUERY, STANDARD_FIELDS)
 
-from lma.database import (Db, DbRecord)
+from lma.database import (Db, DbList, DbRecord)
 
 from lma.artist import (ArtistList, Artist, AVIEW_SELECTORS)
 

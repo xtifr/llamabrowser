@@ -36,17 +36,55 @@ class Db(object):
         """Delegate unknown attributes to the singleton DB handle."""
         return getattr(Db._db, name)
 
+class DbList(object):
+    """Abstract base class for lists of DB records."""
+
+    def __init__(self, db, ctor):
+        """db is a handle for the database.
+        ctor is the constructor for the list element type."""
+
+        self._db = db
+        self._search = None
+        self._ctor = ctor
+        # TODO: handle modes...
+        self._data = []
+        self.refresh() # virtual function defined by base classes
+
+    def refresh():
+        """Pure virtual function."""
+        pass
+
+    @property
+    def search(self):
+        """The current search string, limiting the selection."""
+        return self._search
+    @search.setter
+    def search(self, string):
+        self._search = str(string)
+        self.refresh()
+    @search.deleter
+    def search(self):
+        self._search = None
+        self.refresh()
+
+    # support reading like an array
+    def __getitem__(self, i):
+        return self._ctor(self._db, self._data[i])
+    def __len__(self):
+        return len(self._data)
+
 class DbRecord(object):
     """Abstract base class for defining virtual records.
     
     Derived classes can define attributes that use getDBInfo to
     look up their values."""
-    def __init__(self, Id):
+    def __init__(self, db, Id):
+        self._db = db
         self._value = str(int(Id))
 
     def getDbInfo(self, table, col, matchcol):
         """Find entry in table matching self."""
-        c = Db().cursor()
+        c = self._db.cursor()
         value = c.execute("SELECT %s FROM %s WHERE %s = ?" % (
                 col, table, matchcol), (self._value,)).fetchone()
         c.close()
@@ -63,8 +101,7 @@ class DbRecord(object):
 
     def setDbBool(self, table, col, flag):
         """Set the boolean by adding or deleting from a table."""
-        db = Db()
-        c = db.cursor()
+        c = self._db.cursor()
         # since this is a bool, we either add or delete
         if flag:
             c.execute("INSERT OR REPLACE INTO %s (%s) VALUES (?)" %

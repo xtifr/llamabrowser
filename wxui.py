@@ -377,7 +377,7 @@ class ArtistListCtrl(wx.ListCtrl):
                  style = (wx.LC_REPORT | wx.LC_VIRTUAL | wx.LC_SINGLE_SEL
                           | wx.LC_HRULES | wx.LC_VRULES)):
         super(ArtistListCtrl, self).__init__(parent, id, style=style)
-        self.alist = lma.ArtistList()
+        self.alist = lma.ArtistList(lma.Db())
 
         self.InsertColumn(0, _(u"Artist Name"))
         self.InsertColumn(1, _(u"Last Browsed"))
@@ -552,7 +552,7 @@ class ConcertListCtrl(wx.ListCtrl):
     def setArtist(self, artist):
         """Set artist to display concerts for.  Must be called before using."""
         self._artist = artist
-        self.clist = lma.ConcertList(artist)
+        self.clist = artist.concertList()
         # move to top
         if self.GetItemCount() > 0:
             self.EnsureVisible(0)
@@ -699,7 +699,7 @@ class ConcertDetailsMetaWindow(wx.ScrolledWindow):
     def setConcert(self, concert):
         """Add details to fields, make panel ready for use."""
         self._concert = concert
-        self._details = lma.ConcertDetails(concert)
+        self._details = concert.details()
 
         # replace description and notes, and move to top
         self._description.Replace(0, self._description.GetLastPosition(),

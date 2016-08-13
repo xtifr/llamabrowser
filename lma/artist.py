@@ -23,12 +23,12 @@ AVIEW_SELECTORS = [AVIEW_ALL, AVIEW_FAVORITES, AVIEW_BROWSED, AVIEW_NEW]
 #
 class Artist(lma.DbRecord):
     """Object to wrap an artist ID and calculate various attributes."""
-    def __init__(self, artist):
-        super(Artist, self).__init__(artist)
+    def __init__(self, db, artist_id):
+        super(Artist, self).__init__(db, artist_id)
 
     def concertList(self):
         """Return the list of concerts associated with this artist."""
-        return lma.ConcertList(self)
+        return lma.ConcertList(self._db, self)
 
     # properties (db access)
     @property
@@ -47,12 +47,11 @@ class Artist(lma.DbRecord):
 #
 # ArtistList represents the full set of known artists
 #
-class ArtistList(object):
+class ArtistList(lma.DbList):
     """Generic representation of artist list."""
-    def __init__(self):
+    def __init__(self, db):
         self._mode = AVIEW_ALL
-        self._search = None
-        self.refresh()
+        super(ArtistList, self).__init__(db, Artist)
 
     def refresh(self):
         """Set up to access the DB according to the current mode."""
@@ -72,19 +71,17 @@ class ArtistList(object):
             like = "WHERE a.aname LIKE '%%%s%%'" % self.search
 
         # now call select using the appropriate join
-        db = lma.Db()
-        c = db.cursor()
+        c = self._db.cursor()
         c.execute("SELECT a.aid FROM artist AS a %s %s "
                   "  ORDER BY a.aname" % (joinon, like))
-        self._data = [Artist(x[0]) for x in c.fetchall()]
+        self._data = [x[0] for x in c.fetchall()]
         c.close()
 
     def repopulate(self, progbar = lma.NullProgressBar):
         """Update the DB from the internet, then refresh."""
 
         # get the last update date
-        db = lma.Db()
-        c = db.cursor()
+        c = self._db.cursor()
         c.execute("SELECT last_artist_read from lma_config where recnum = 1");
         lastdate = c.fetchone()[0]
 
@@ -118,9 +115,8 @@ class ArtistList(object):
 
     def clearNew(self):
         """Clear the new list, then refresh."""
-        db = lma.Db()
-        db.execute("DELETE FROM newartist")
-        db.commit()
+        self._db.execute("DELETE FROM newartist")
+        self._db.commit()
         self.refresh()
 
     # properties for mode selection
@@ -136,22 +132,3 @@ class ArtistList(object):
         if self._mode != value:
             self._mode = value
             self.refresh()
-
-    @property
-    def search(self):
-        """The current search string, limiting the selection."""
-        return self._search
-    @search.setter
-    def search(self, string):
-        self._search = str(string)
-        self.refresh()
-    @search.deleter
-    def search(self):
-        self._search = None
-        self.refresh()
-
-    # support reading like an array
-    def __getitem__(self, i):
-        return self._data[i]
-    def __len__(self):
-        return len(self._data)

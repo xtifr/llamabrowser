@@ -57,11 +57,7 @@ def download_files(songlist, concert, targetdir, artist=None,
 
     # success, mark the concert as downloaded
     # (yes, it may be partial, but we still downloaded it.
-    db = lma.Db()
-    c = db.cursor()
-    c.execute("INSERT OR REPLACE INTO dlconcert (cid, dldate)"
-              "  VALUES (?, date('now'))", (str(concert),))
-    db.commit()
+    concert.markDownloaded()
     c.close()
 
     return True

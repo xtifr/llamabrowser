@@ -11,25 +11,6 @@ import lma
 _ = str
 
 #
-# Concert database access
-#
-def download_concerts(artist, progbar = lma.NullProgressBar):
-    """Download concert records for given artist from LMA."""
-
-#
-# reset new concert list for given artist
-#
-def clear_new_concerts(artist):
-    """Clear an artist's new concert list."""
-    artist = str(int(artist))
-
-#
-# Forget all concerts for the given artist
-#
-def forget_concerts(artist):
-    """Forget all about this artist's concerts."""
-
-#
 # Prepare a list of concerts
 #
 
@@ -45,12 +26,24 @@ CVIEW_SELECTORS = [CVIEW_ALL, CVIEW_FAVORITES, CVIEW_NEW, CVIEW_DL]
 #
 class Concert(lma.DbRecord):
     """Object to wrap a concert ID and calculate various attributes."""
-    def __init__(self, concert):
-        super(Concert, self).__init__(concert)
+    def __init__(self, db, concert):
+        super(Concert, self).__init__(db, concert)
 
     def fileList(self):
         """Return the songs associated with this concert."""
         return ConcertFileList(self)
+
+    def details(self):
+        """Return the details for this concert."""
+        return lma.ConcertDetails(self._db, self)
+
+    def markDownloaded(self):
+        """Mark this concert as having been downloaded."""
+        c = self._db.cursor()
+        c.execute("INSERT OR REPLACE INTO dlconcert (cid, dldate)"
+                  "  VALUES (?, date('now'))", (str(self),))
+        self._db.commit()
+        c.close()
 
     # properties
     @property
@@ -75,25 +68,24 @@ class Concert(lma.DbRecord):
 
     @property
     def artist(self):
-        return lma.Artist(self.getDbInfo("concert", "artistid", "cid"))
+        return lma.Artist(self._db,
+                          self.getDbInfo("concert", "artistid", "cid"))
 
 #
 # list of Concerts
 #
-class ConcertList(object):
+class ConcertList(lma.DbList):
     """Generic representation of a concert list."""
 
-    def __init__(self, artist):
+    def __init__(self, db, artist):
         self._artist = artist
         self._mode = CVIEW_ALL
-        self._search = None
-        self.refresh()
+        super(ConcertList, self).__init__(db, Concert)
 
     def refresh(self):
         """Set up to access the DB according to the current mode."""
 
-        db = lma.Db()
-        c = db.cursor()
+        c = self._db.cursor()
 
         # get the name and id
         c.execute("SELECT aname,lmaid FROM artist where aid = ?",
@@ -118,16 +110,14 @@ class ConcertList(object):
         c.execute("SELECT c.cid FROM concert AS c %s"
                   "  WHERE c.artistid = '%s' %s"
                   "  ORDER BY c.cdate" % (joinon, str(self._artist), like))
-        self._data = [Concert(x[0]) for x in c.fetchall()]
+        self._data = [x[0] for x in c.fetchall()]
         c.close()
 
     def repopulate(self, progbar = lma.NullProgressBar):
         """Update the DB from the internet, then refresh."""
 
-        db = lma.Db()
-
         # get the last update date
-        c = db.cursor()
+        c = self._db.cursor()
         c.execute("SELECT a.lmaid, a.aname, l.browsedate FROM artist AS a"
                   "  LEFT JOIN lastbrowse AS l ON a.aid = l.aid"
                   "  WHERE a.aid = ?", (str(self._artist),))
@@ -155,32 +145,34 @@ class ConcertList(object):
         c.execute("INSERT OR REPLACE INTO lastbrowse (aid, browsedate)"
                   "  VALUES (?, date('now'))", (str(self._artist),))
 
-        db.commit()
+        self._db.commit()
         c.close()
 
         # clear newlist on first time through
         if lastdate == None:
-            self.clearNew()
-        else:
-            self.refresh()
+            self._clearNew()
+
+        self.refresh()
+
+    def _clearNew(self):
+        """Internal: clear 'new' concerts list, but don't refresh!"""
+        c = self._db.cursor()
+        c.execute("DELETE FROM newconcert WHERE cid IN "
+                  "  (SELECT cid FROM concert WHERE artistid = ?)", (str(self._artist),))
+        self._db.commit()
+        c.close()
 
     def clearNew(self):
         """Clear the 'new' concerts list."""
-        db = lma.Db()
-        c = db.cursor()
-        c.execute("DELETE FROM newconcert WHERE cid IN "
-                  "  (SELECT cid FROM concert WHERE artistid = ?)", (str(self._artist),))
-        db.commit()
-        c.close()
+        self._clearNew()
         self.refresh()
 
     def forget(self):
         """Remove all concerts from db; create blank slate..."""
-        db = lma.Db()
-        c = db.cursor()
+        c = self._db.cursor()
 
         # get rid of any dependent records first
-        self.clearNew()
+        self._clearNew()
         c.execute("DELETE FROM favconcert WHERE concertid IN "
                   "  (SELECT cid FROM concert WHERE artistid = ?)", (str(self._artist),))
         c.execute("DELETE FROM dlconcert WHERE cid IN "
@@ -190,7 +182,7 @@ class ConcertList(object):
         c.execute("DELETE FROM concert WHERE artistid = ?", (str(self._artist),))
         c.execute("DELETE FROM lastbrowse WHERE aid = ?", (str(self._artist),))
 
-        db.commit()
+        self._db.commit()
         c.close()
         self.refresh()
 
@@ -209,24 +201,5 @@ class ConcertList(object):
             self.refresh()
 
     @property
-    def search(self):
-        """current search string, limiting the selection."""
-        return self._search
-    @search.setter
-    def search(self, string):
-        self._search = str(string)
-        self.refresh()
-    @search.deleter
-    def search(self):
-        self._search = None
-        self.refresh()
-
-    @property
     def artistName(self):
         return(self._artist.name)
-
-    # support reading like an array
-    def __getitem__(self, i):
-        return self._data[i]
-    def __len__(self):
-        return len(self._data)
