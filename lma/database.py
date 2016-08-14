@@ -9,32 +9,31 @@
 
 Assuming sqlite3 for now.  May allow other DBs for shared access in
 future versions."""
-import os
 import sqlite3
 
 import lma
 
-class Db(object):
-    """A handle for the singleton DB access."""
-    _db = None
-    _name = None
-    def __init__(self):
-        """make sure db is open."""
-        if Db._db == None:
-            fname = lma.Config().dbpath()
-            # if there's no db there, we'll also have to populate it.
-            found = os.path.exists(fname)
-            Db._db = sqlite3.connect(fname)
-            if not found:
-                _populate_db(Db._db)
+class ArDb(object):
+    """Handle for a local Internet Archive database."""
+
+    def __init__(self, path):
+        """Open db and create tables if necessary."""
+        import os
+        found = os.path.exists(str(path))
+        self._db = sqlite3.connect(str(path))
+
+        if not found:
+            _populate_db(self._db)
+
     def close(self):
-        if Db._db:
-            Db._db.close()
-            Db._db = None
+        if self._db:
+            self._db.close()
+            self._db = None
 
     def __getattr__(self, name):
-        """Delegate unknown attributes to the singleton DB handle."""
-        return getattr(Db._db, name)
+        """Delegate unknown attributes to the DB handle."""
+        return getattr(self._db, name)
+
 
 class DbList(object):
     """Abstract base class for lists of DB records."""

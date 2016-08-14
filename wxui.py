@@ -377,7 +377,8 @@ class ArtistListCtrl(wx.ListCtrl):
                  style = (wx.LC_REPORT | wx.LC_VIRTUAL | wx.LC_SINGLE_SEL
                           | wx.LC_HRULES | wx.LC_VRULES)):
         super(ArtistListCtrl, self).__init__(parent, id, style=style)
-        self.alist = lma.ArtistList(lma.Db())
+
+        self.alist = lma.ArtistList(lma.ArDb(lma.Config().dbpath()))
 
         self.InsertColumn(0, _(u"Artist Name"))
         self.InsertColumn(1, _(u"Last Browsed"))

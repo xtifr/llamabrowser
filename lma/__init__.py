@@ -29,7 +29,7 @@ from lma.query import (archive_open, Query, ProgressIter,
                        IDENTIFIER, TITLE, COLLECTION, MEDIATYPE, PUBDATE, DATE, YEAR,
                        FORMAT, BAND_QUERY, CONCERT_QUERY, STANDARD_FIELDS)
 
-from lma.database import (Db, DbList, DbRecord)
+from lma.database import (ArDb, DbList, DbRecord)
 
 from lma.artist import (ArtistList, Artist, AVIEW_SELECTORS)
 
