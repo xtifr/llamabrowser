@@ -105,6 +105,23 @@ class _Result (object):
         self._results = response["numFound"]
         self._data = response["docs"]
 
+    def _cleandata(self, n):
+        """Make sure all fields are present in returned data.
+
+        The Archive's json interface will simply leave out empty
+        fields. We want to make sure that all the fields exist in the
+        data we return, so we check and fill in missing fields with
+        empty strings. This is a bit hackish, but we shouldn't have a
+        problem with empty key fields, since we use basically the same
+        keys as the Archive."""
+
+        testdata = self._data[n]
+        testkeys = testdata.keys()
+        for k in self._field:
+            if not k in testkeys:
+                testdata[k] = u""
+        return testdata
+
     def next(self):
         """Return the next result, reading in data if necessary."""
         # calculate offset into current page
@@ -123,7 +140,7 @@ class _Result (object):
 
         # set up for next call, now that we're past the raises.
         self._current += 1
-        return self._data[offset]
+        return self._cleandata(offset)
 
     def __iter__(self):
         """Required for proper iterator-like behavior."""
