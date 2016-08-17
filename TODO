@@ -29,13 +29,15 @@ Longer term
 * Downloading enhancements
 ** add missing metadata to flac
 ** Download non-audio data (images, etc.)
-** Background downloading
+** Background downloading
 ** Pause/resume downloads
 * Concert stuff
 ** redesign display section.
 ** play songs?
 * Support non-unix systems?  (mostly config / storage issues)
-* proper i18n support (gettext instead of stubbery).
+* proper i18n support
+** gettext instead of stubbery.
+** localize date displays.
 * Artist details (to match concert details)
 * if archive path has extra dir, make an option to flatten the tree.
 * Autoconvert options
