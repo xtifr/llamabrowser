@@ -81,9 +81,7 @@ class ArtistList(lma.DbList):
         """Update the DB from the internet, then refresh."""
 
         # get the last update date
-        c = self._db.cursor()
-        c.execute("SELECT last_artist_read from lma_config where recnum = 1");
-        lastdate = c.fetchone()[0]
+        lastdate = self.lastUpdate()
 
         # form the archive query (including lastdate)
         aquery = lma.Query(lma.BAND_QUERY)
@@ -119,6 +117,21 @@ class ArtistList(lma.DbList):
         self._db.execute("DELETE FROM newartist")
         self._db.commit()
         self.refresh()
+
+    def numNew(self):
+        """Report the current number of 'new' artists."""
+        c = self._db.cursor()
+        c.execute("SELECT COUNT(aid) FROM newartist;")
+        n = int(c.fetchone()[0])
+        c.close()
+        return n
+
+    def lastUpdate(self):
+        c = self._db.cursor()
+        c.execute("SELECT last_artist_read from lma_config where recnum = 1");
+        lastdate = c.fetchone()[0]
+        c.close()
+        return lastdate
 
     # properties for mode selection
     @property

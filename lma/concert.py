@@ -116,12 +116,12 @@ class ConcertList(lma.DbList):
     def repopulate(self, progbar = lma.NullProgressBar):
         """Update the DB from the internet, then refresh."""
 
-        # get the last update date
         c = self._db.cursor()
-        c.execute("SELECT a.lmaid, a.aname, l.browsedate FROM artist AS a"
-                  "  LEFT JOIN lastbrowse AS l ON a.aid = l.aid"
-                  "  WHERE a.aid = ?", (str(self._artist),))
-        lmaid, aname, lastdate = c.fetchone()
+        c.execute("SELECT lmaid, aname FROM artist"
+                  "  WHERE aid = ?", (str(self._artist),))
+        lmaid, aname = c.fetchone()
+
+        lastdate = self.lastUpdate()
 
         # form the archive query (including lastdate)
         cquery = lma.Query(lma.CONCERT_QUERY(lmaid))
@@ -167,6 +167,25 @@ class ConcertList(lma.DbList):
         self._clearNew()
         self.refresh()
 
+    def numNew(self):
+        """Report the current size of the 'new' concerts list."""
+        c = self._db.cursor()
+        c.execute("SELECT COUNT(n.cid) FROM newconcert AS n"
+                  "  JOIN concert AS c ON c.cid = n.cid"
+                  "  WHERE c.artistid = ?", (str(self._artist),))
+        n = int(c.fetchone()[0])
+        c.close()
+        return n
+
+    def lastUpdate(self):
+        """Return the date of the last time we repopulated the list."""
+        c = self._db.cursor()
+        c.execute("SELECT browsedate FROM lastbrowse"
+                  "  WHERE aid = ?", (str(self._artist),))
+        lastdate = c.fetchone()[0]
+        c.close()
+        return lastdate
+
     def forget(self):
         """Remove all concerts from db; create blank slate..."""
         c = self._db.cursor()
@@ -174,13 +193,17 @@ class ConcertList(lma.DbList):
         # get rid of any dependent records first
         self._clearNew()
         c.execute("DELETE FROM favconcert WHERE concertid IN "
-                  "  (SELECT cid FROM concert WHERE artistid = ?)", (str(self._artist),))
+                  "  (SELECT cid FROM concert WHERE artistid = ?)",
+                  (str(self._artist),))
         c.execute("DELETE FROM dlconcert WHERE cid IN "
-                  "  (SELECT cid FROM concert WHERE artistid = ?)", (str(self._artist),))
+                  "  (SELECT cid FROM concert WHERE artistid = ?)",
+                  (str(self._artist),))
 
         # now clear the database and forget we ever downloaded anything
-        c.execute("DELETE FROM concert WHERE artistid = ?", (str(self._artist),))
-        c.execute("DELETE FROM lastbrowse WHERE aid = ?", (str(self._artist),))
+        c.execute("DELETE FROM concert WHERE artistid = ?",
+                  (str(self._artist),))
+        c.execute("DELETE FROM lastbrowse WHERE aid = ?",
+                  (str(self._artist),))
 
         self._db.commit()
         c.close()

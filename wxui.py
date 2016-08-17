@@ -3,7 +3,7 @@
 # lmabrowser - browse and download concerts from the Internet Archive's
 #               Live Music Archive (the LMA, aka "the llama").
 #
-#   copyright 2012 by Chris Waters <xtifr.w@gmail.com>
+#   copyright 2012, 2016 by Chris Waters <xtifr.w@gmail.com>
 #
 #   This program is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -415,6 +415,10 @@ class ArtistListCtrl(wx.ListCtrl):
     def clearNew(self):
         self.alist.clearNew()
         self.reset()
+    def numNew(self):
+        return self.alist.numNew()
+    def lastUpdate(self):
+        return self.alist.lastUpdate()
     def getArtist(self, row):
         return self.alist[row]
 
@@ -433,38 +437,69 @@ class ArtistListPanel(wx.Panel):
     """Panel for listing the LMA's artists."""
     def __init__(self, parent, id=-1):
         super(ArtistListPanel, self).__init__(parent, id)
+
+        # Make the main sizer for the panel
         sizer = wx.BoxSizer(wx.VERTICAL)
 
-        # create the list widget
-        self._listctrl = ArtistListCtrl(self, ARTIST_LIST_ID)
+        # title row
+        tmpsizer = wx.BoxSizer(wx.HORIZONTAL)
+        tmpsizer.AddStretchSpacer()
+        tmpsizer.Add(wx.StaticText(self, -1,
+                                   _(u"Artists on the Live Music Archive")),
+                     0, wx.ALIGN_CENTER)
+        tmpsizer.AddStretchSpacer()
+        sizer.Add(tmpsizer, 0, wx.EXPAND)
 
-        # create the top row of widgets
+        # info row
+        tmpsizer = wx.BoxSizer(wx.HORIZONTAL)
+        self._updatetext = wx.StaticText(self, -1, "")
+        tmpsizer.Add(self._updatetext, 0, wx.ALIGN_CENTER|wx.ALL, border=5)
+        tmpsizer.AddStretchSpacer()
+        self._newtext = wx.StaticText(self, -1, "")
+        tmpsizer.Add(self._newtext, 0, wx.ALIGN_CENTER|wx.ALL, border=5)
+        sizer.Add(tmpsizer, 0, wx.EXPAND)
+
+        # search/mode row
+        tmpsizer = wx.BoxSizer(wx.HORIZONTAL)
+
         search = wx.SearchCtrl(self, -1, style = wx.TE_PROCESS_ENTER)
         search.SetDescriptiveText(_(u"Search Artists"))
         search.ShowCancelButton(True)
         self.Bind(wx.EVT_TEXT_ENTER, self.OnSearch, search)
         self.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.OnCancelSearch)
-        label = wx.StaticText(self, -1, "Select:")
+        tmpsizer.Add(search, 0, wx.ALIGN_CENTER)
+        tmpsizer.AddStretchSpacer()
+        tmpsizer.Add(wx.StaticText(self, -1, _(u"Select:")), 0, wx.ALIGN_CENTER)
         select = wx.Choice(self, -1, choices=lma.AVIEW_SELECTORS)
         self.Bind(wx.EVT_CHOICE, self.setArtistMode)
+        tmpsizer.Add(select, 0, wx.ALIGN_CENTER)
+        sizer.Add(tmpsizer, 0, wx.EXPAND)
 
-        # make a sizer for the top row
-        topsizer = wx.BoxSizer(wx.HORIZONTAL)
-        topsizer.Add(search, 0, wx.ALIGN_CENTER)
-        topsizer.AddStretchSpacer()
-        topsizer.Add(label, 0, wx.ALIGN_CENTER)
-        topsizer.Add(select, 0, wx.ALIGN_CENTER)
-
-        # make a sizer for the panel
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(topsizer, 0, wx.EXPAND)
+        # create the list widget
+        self._listctrl = ArtistListCtrl(self, ARTIST_LIST_ID)
         sizer.Add(self._listctrl, 1, wx.EXPAND)
         self.SetSizer(sizer)
 
+        self.setUpdateText()
+        self.setNewText()
+
+    def setUpdateText(self):
+        """Insert the last-update text into display."""
+        lastdate = self._listctrl.lastUpdate()
+        if not lastdate:
+            lastdate = _(u"Never")
+        self._updatetext.SetLabel(_(u"Last Updated: ") + lastdate)
+    def setNewText(self):
+        """Insert the new count into display."""
+        count = self._listctrl.numNew()
+        self._newtext.SetLabel(_(u"New Entries: ") + str(count))
     def download(self):
         self._listctrl.download()
+        self.setUpdateText()
+        self.setNewText()
     def clearNew(self):
         self._listctrl.clearNew()
+        self.setNewText()
     def getArtist(self, row):
         return self._listctrl.getArtist(row)
 
@@ -532,6 +567,8 @@ class ConcertListCtrl(wx.ListCtrl):
         if self.clist != None:
             self.clist.clearNew()
             self.reset()
+    def numNew(self):
+        return self.clist.numNew()
     def forget(self):
         if self.clist != None:
             style = wx.ICON_EXCLAMATION | wx.YES_NO | wx.NO_DEFAULT
@@ -550,6 +587,8 @@ class ConcertListCtrl(wx.ListCtrl):
                 self.reset()
     def getConcert(self, row):
         return self.clist[row]
+    def lastUpdate(self):
+        return self.clist.lastUpdate()
     def setArtist(self, artist):
         """Set artist to display concerts for.  Must be called before using."""
         self._artist = artist
@@ -596,42 +635,46 @@ class ConcertListPanel(wx.Panel):
         super(ConcertListPanel, self).__init__(parent, id)
         sizer = wx.BoxSizer(wx.VERTICAL)
 
-        # create the list widget
-        self._listctrl = ConcertListCtrl(self, CONCERT_LIST_ID)
-
-        # label field at top
-        self._label = wx.StaticText(self, -1, "")
+        # label field at top (artist name goes here later)
         tmpsizer = wx.BoxSizer(wx.HORIZONTAL)
+        self._label = wx.StaticText(self, -1, "")
         tmpsizer.AddStretchSpacer()
-        tmpsizer.Add(self._label, 0)
+        tmpsizer.Add(self._label, 0, wx.ALIGN_CENTER)
         tmpsizer.AddStretchSpacer()
-        sizer.Add(tmpsizer, 0, wx.ALIGN_CENTER)
+        sizer.Add(tmpsizer, 0, wx.EXPAND)
 
-        # create the top row of widgets
+        # info row
+        tmpsizer = wx.BoxSizer(wx.HORIZONTAL)
+        self._updatetext = wx.StaticText(self, -1, "")
+        tmpsizer.Add(self._updatetext, 0, wx.ALIGN_CENTER|wx.ALL, border=5)
+        tmpsizer.AddStretchSpacer()
+        self._newtext = wx.StaticText(self, -1, "")
+        tmpsizer.Add(self._newtext, 0, wx.ALIGN_CENTER|wx.ALL, border=5)
+        sizer.Add(tmpsizer, 0, wx.EXPAND)
+
+        # search/mode row
+        tmpsizer = wx.BoxSizer(wx.HORIZONTAL)
         self._search = wx.SearchCtrl(self, -1, style = wx.TE_PROCESS_ENTER)
         self._search.SetDescriptiveText(_(u"Search Concerts"))
         self._search.ShowCancelButton(True)
         self.Bind(wx.EVT_TEXT_ENTER, self.OnSearch)
         self.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.OnCancelSearch)
-        label = wx.StaticText(self, -1, _(u"Select:"))
-        self._choice = wx.Choice(self, -1, choices=lma.CVIEW_SELECTORS)
-        self.Bind(wx.EVT_CHOICE, self.setConcertMode, self._choice)
-
-        # make a sizer for the top row
-        tmpsizer = wx.BoxSizer(wx.HORIZONTAL)
         tmpsizer.Add(self._search, 0, wx.ALIGN_CENTER)
         tmpsizer.AddStretchSpacer()
-        tmpsizer.Add(label, 0, wx.ALIGN_CENTER)
+        tmpsizer.Add(wx.StaticText(self, -1, _(u"Select:")), 0, wx.ALIGN_CENTER)
+        self._choice = wx.Choice(self, -1, choices=lma.CVIEW_SELECTORS)
+        self.Bind(wx.EVT_CHOICE, self.setConcertMode, self._choice)
         tmpsizer.Add(self._choice, 0, wx.ALIGN_CENTER)
         sizer.Add(tmpsizer, 0, wx.EXPAND)
 
-        # now it's time to add the listctrl
+        # create the list widget
+        self._listctrl = ConcertListCtrl(self, CONCERT_LIST_ID)
         sizer.Add(self._listctrl, 1, wx.EXPAND)
 
         # make a back button at the bottom
-        button = wx.Button(self, CONCERT_BACK_BUTTON_ID, _(u"Back"))
         tmpsizer = wx.BoxSizer(wx.HORIZONTAL)
-        tmpsizer.Add(button, 0, wx.ALIGN_CENTER)
+        tmpsizer.Add(wx.Button(self, CONCERT_BACK_BUTTON_ID, _(u"Back")),
+                     0, wx.ALIGN_CENTER)
         sizer.Add(tmpsizer, 0)
 
         self.SetSizer(sizer)
@@ -644,16 +687,34 @@ class ConcertListPanel(wx.Panel):
         self._search.Clear()
         self._choice.SetSelection(0)
 
+        self.setUpdateText()
+        self.setNewText()
+
+    def setUpdateText(self):
+        """Insert the last-update text into display."""
+        lastdate = self._listctrl.lastUpdate()
+        if not lastdate:
+            lastdate = _(u"Never")
+        self._updatetext.SetLabel(_(u"Last Updated: ") + lastdate)
+    def setNewText(self):
+        """Insert the new count into display."""
+        count = self._listctrl.numNew()
+        self._newtext.SetLabel(_(u"New Entries: ") + str(count))
     def download(self):
         self._listctrl.download()
+        self.setUpdateText()
+        self.setNewText()
     def clearNew(self):
         self._listctrl.clearNew()
+        self.setNewText()
     def getConcert(self, row):
         return self._listctrl.getConcert(row)
     def toggleFavorite(self):
         self._listctrl.toggleFavorite()
     def forget(self):
         self._listctrl.forget()
+        self.setUpdateText()
+        self.setNewText()
 
     # method handlers
     def setConcertMode(self, event):
@@ -969,7 +1030,7 @@ class LMAFrame(wx.Frame):
         info = wx.AboutDialogInfo()
         info.Name = _(u"LlamaBrowser")
         info.Version = lma.__version__
-        info.Copyright = (u"\u24d2 2012 Chris Waters")
+        info.Copyright = (u"\u24d2 2012, 2016 Chris Waters")
         info.Description = wordwrap(
             _(u"Browse and download concert recordings from the "
             "Internet Archive's Live Music Archive (LMA or The LlaMA). "
