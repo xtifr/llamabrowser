@@ -105,7 +105,7 @@ class ArtistList(lma.DbList):
         c.execute("UPDATE lma_config SET last_artist_read = date('now')"
                    "WHERE recnum = 1")
 
-        db.commit()
+        self._db.commit()
         c.close()
 
         # clear newlist on first time through
