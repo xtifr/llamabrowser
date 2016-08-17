@@ -95,6 +95,7 @@ class ArtistList(lma.DbList):
         callback = lma.ProgressCallback("Live Music Archive Download",
                                         "Retrieve Artists from LMA", progbar)
 
+        c = self._db.cursor()
         # push the records into our database, with callback
         c.executemany("INSERT OR IGNORE INTO artist (aname, lmaid)"
                       "  VALUES (:title, :identifier)",
