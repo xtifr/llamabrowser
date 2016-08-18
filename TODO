@@ -13,12 +13,12 @@ For initial release:
 ** bad data from LMA
 * Test suites
 * Some basic locale checking--make sure things can be displayed in user's active locale!
+** Unicode heart used for favorites, for example!
 
 Little tasks:
 * Add taper, etc. to concert details
 * Add a popup when we're downloading details.
 * Notify user if there's nothing to download.
-* Heart icon on main page for favorites?
 * Grey out "Clear New" menu option when new list is empty.
 * (Maybe?) Popup for downloading artist/concert lists, with button for clearing new list.
 * If possible: no user-visible (translatable) text in lma library section.
@@ -44,8 +44,6 @@ Longer term
 ** shn to flac
 ** lossless to lossy (copy)
 * Hide artists/concerts (just not interested)
-* Discard concert lists for artists
-** Add metadata too
 * Allow interrupting and restarting downloads, by making use of the
   pubdate field we're already grabbing from the archive.
 * Limit viewing artists by starting letter
